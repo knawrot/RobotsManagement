@@ -1,0 +1,113 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context="${packageName}.${activityClass}" >
+
+    <RelativeLayout
+        android:id="@+id/sidePanel"
+        android:layout_width="0dp"
+        android:layout_height="match_parent" 
+        android:layout_weight="1" 
+        android:background="#F3F3F3" >
+            
+        <RelativeLayout 
+            android:id="@+id/listTitleContainer"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignParentTop="true" >
+            
+            <TextView
+            	android:id="@+id/listTitle"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:layout_above="@+id/listTitleUnderline"
+            	android:layout_marginLeft="10dp"
+	            android:text="@string/listTitle"
+            	android:textSize="30sp" 
+            	android:textColor="#4F4F4F"/>
+            
+            <ImageButton
+            	android:id="@+id/addRobotButton"
+            	android:layout_width="wrap_content"
+           		android:layout_height="wrap_content"
+           		android:layout_toRightOf="@id/listTitle"
+           		android:layout_marginLeft="20dp"
+           		android:layout_alignParentBottom="true"
+            	android:contentDescription="@string/addRobotButton" 
+            	android:src="@drawable/plus" />
+        
+        	<View
+            	android:id="@id/listTitleUnderline"
+        		android:layout_width="match_parent"
+        		android:layout_height="5dp"
+        		android:layout_marginBottom="1dp"
+        		android:layout_alignParentBottom="true"
+        		android:background="#DADADC" >
+        	</View>
+        	
+        </RelativeLayout>
+        
+        <ListView
+            android:id="@+id/robotsList"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/buttonsContainer"
+            android:layout_below="@id/listTitleContainer"
+            android:choiceMode="singleChoice"
+            android:listSelector="#b4e820"
+            android:entries="@array/selectableRobots" />
+
+        <View
+            android:id="@+id/listEndUnderline"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/robotsList"
+            android:background="#DADADC" />
+        
+        <RelativeLayout
+            android:id="@id/buttonsContainer" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" 
+            android:layout_centerHorizontal="true" 
+            android:layout_marginTop="10dp" >
+            
+            <ImageButton
+                android:id="@+id/cameraButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/cameraButtonDesc"
+                android:src="@drawable/camera" />
+            
+            <ImageButton 
+            	android:id="@+id/moreInfoButton"
+            	android:layout_width="wrap_content"
+           		android:layout_height="wrap_content"
+            	android:layout_toRightOf="@id/cameraButton"
+            	android:contentDescription="@string/moreInfoButtonDesc" 
+            	android:src="@drawable/info" />
+            
+            <ImageButton 
+            	android:id="@+id/colliDrawButton"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:layout_toRightOf="@id/moreInfoButton"
+            	android:contentDescription="@string/colliDrawButtonDesc" 
+            	android:src="@drawable/collision" />
+            
+        </RelativeLayout>
+        
+    </RelativeLayout>
+    
+    <ImageView
+        android:id="@+id/sampleMsg"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="3"
+        android:src="@drawable/map" 
+        android:scaleType="fitXY"/>
+        
+</LinearLayout>

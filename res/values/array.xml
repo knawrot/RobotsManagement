@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string-array name="selectableRobots">
+        <item>Robot Maciek</item>
+        <item>Robot Krzysiek</item>
+        <item>Robot Michal</item>
+        <item>Robot Marian</item>
+        <item>Robot Piotrek</item>
+        <item>Robot Lucjan</item>
+        <item>Robot Grzegorz</item>
+    </string-array>
+    
+</resources>
