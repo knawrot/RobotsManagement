@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,9 +33,9 @@ public class MainActivity extends Activity {
 	private Thread renderThread;
 	private boolean renderFlag;
 	
-	private float x = 10.0f;
-	private float y = 10.0f;
-	private float zoom = 20.0f;
+	private float x = 00.0f;
+	private float y = 00.0f;
+	private float zoom = 15.0f;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +67,8 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
-					//Log.i("Aplikacja", "Wspolrzedna X: " + event.getX() +
-					//		", Y: " + event.getY());
+					Log.i("Aplikacja", "Wspolrzedna X: " + event.getX() +
+							", Y: " + event.getY());
 					moveRobot(event.getX(), event.getY());
 				}
 				return true;
