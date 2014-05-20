@@ -25,7 +25,11 @@ public class MainActivity extends Activity {
 	private SurfaceHolder surfaceHolder;
 	private Canvas canvas;
 	private Thread renderThread;
-	private boolean renderFlag = false;
+	private boolean renderFlag;
+	
+	private float x = 10.0f;
+	private float y = 10.0f;
+	private float zoom = 20.0f;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +56,9 @@ public class MainActivity extends Activity {
 			}
 		});
         
-        renderThread = new Thread(renderingLoop);
-        renderThread.start();
+        this.renderFlag = false;
+        this.renderThread = new Thread(renderingLoop);
+        this.renderThread.start();
     }
     
     private SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
@@ -85,7 +90,7 @@ public class MainActivity extends Activity {
 			boolean interrupedInternally = false;
             
 	        while(!renderThread.isInterrupted() && !interrupedInternally) {
-	            try{
+	            try {
 	            	Thread.sleep(40);
 	            } catch(InterruptedException ie) {
 	            	interrupedInternally = true;
@@ -93,10 +98,10 @@ public class MainActivity extends Activity {
 	            if(!renderFlag)
 	            	continue;
 	             
-	            try{
+	            try {
 	                canvas = surfaceHolder.lockCanvas();
-	                canvas.drawColor(Color.BLACK, PorterDuff.Mode.CLEAR);
-					JsonMapRenderer.draw(canvas, 0.0, 0.0, 1.0);
+	                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
+					JsonMapRenderer.draw(canvas, x, y, zoom);
 	                surfaceHolder.unlockCanvasAndPost(canvas);
 	            } catch(Exception e) {
 	            	interrupedInternally = true;
