@@ -13,12 +13,17 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+
 /* 
  * 1. Skalowanie mapy to nie jest najlepsze wyjscie w naszej sytuacji (powinien byc z gory znany
  * obszar ktory sie pokazuje w widoku mapy)
  * 2. Mniejsze przyciski
  * 3. Pochowac kolory/rozmiary tekstow itd. do *.xml jakas zmiana
  */
+
 public class MainActivity extends Activity {
 
 	private SurfaceView surfaceView;
@@ -47,18 +52,52 @@ public class MainActivity extends Activity {
         this.surfaceHolder = this.surfaceView.getHolder();
         this.surfaceHolder.addCallback(surfaceHolderCallback);
         
-        surfaceView.setOnTouchListener(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				
-				return true;
-			}
-		});
+        setUpListeners();
         
         this.renderFlag = false;
         this.renderThread = new Thread(renderingLoop);
         this.renderThread.start();
+    }
+    
+    private void setUpListeners() {
+    	SurfaceView imageView = (SurfaceView) findViewById(R.id.mapComponent);
+        imageView.setOnTouchListener(new OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_UP) {
+					//Log.i("Aplikacja", "Wspolrzedna X: " + event.getX() +
+					//		", Y: " + event.getY());
+					moveRobot(event.getX(), event.getY());
+				}
+				return true;
+			}
+		});
+        
+        final ListView list = (ListView) findViewById(R.id.robotsList); 
+        list.setOnItemClickListener(new OnItemClickListener() {
+        	View currentlySelected = null;
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				//Log.i("Aplikacja", (String) list.getItemAtPosition(position)); 
+				//TODO: uaktywnij ikony z szarego koloru jesli jeszcze nie sa aktywne
+				view.setBackgroundColor(getResources().getColor(R.color.GRASS_GREEN));
+				if(currentlySelected != null) 
+					currentlySelected.setBackgroundColor(0);
+				currentlySelected = view;
+			}
+		});
+    }
+    
+    public void moveRobot(float x, float y) {
+    	translateToMapCords(x, y);
+    	//TODO: dalsze gunwo
+    }
+    
+    private void translateToMapCords(float x, float y) {
+    	//TODO: gunwo, jakas skala musi byc zdefiniowana or so
     }
     
     private SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
