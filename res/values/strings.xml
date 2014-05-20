@@ -10,9 +10,8 @@
     <string name="cameraButtonDesc">Streaming live</string>
     <string name="moreInfoButtonDesc">Info z czujnikow</string>
     <string name="colliDrawButtonDesc">Rysowanie kolizji</string>
-    <string name="mapComponentDesc">Glowny komponent map</string>
+    <string name="mapComponentDesc">Glowny komponent mapy</string>
     <string name="Diddy">jest ogórem</string>
-    <string name="Kupa">dupa</string>
     
 
 </resources>
