@@ -102,12 +102,12 @@
         
     </RelativeLayout>
     
-    <ImageView
-        android:id="@+id/mapComponent" android:layout_width="0dp"
+    <SurfaceView
+	    android:id="@+id/mapComponent"
+	    android:layout_width="0dp"
         android:layout_height="fill_parent"
         android:layout_weight="3"
-        android:contentDescription="@string/mapComponentDesc"
-        android:src="@drawable/map" 
+        android:contentDescription="@string/mapComponentDesc" 
         android:scaleType="fitXY"/>
         
 </LinearLayout>

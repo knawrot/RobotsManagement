@@ -1,11 +1,17 @@
 package com.example.robotsmanagement;
 
+import java.io.IOException;
+
 import android.app.Activity;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.widget.ImageView;
 
 /* 
  * 1. Skalowanie mapy to nie jest najlepsze wyjscie w naszej sytuacji (powinien byc z gory znany
@@ -15,13 +21,29 @@ import android.widget.ImageView;
  */
 public class MainActivity extends Activity {
 
+	private SurfaceView surfaceView;
+	private SurfaceHolder surfaceHolder;
+	private Canvas canvas;
+	private Thread renderThread;
+	private boolean renderFlag = false;
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        View imageView = (ImageView) findViewById(R.id.mapComponent);
-        imageView.setOnTouchListener(new OnTouchListener() {
+        try {
+			JsonMapRenderer.load(getApplicationContext(), "second_floor_rooms");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        this.surfaceView = (SurfaceView) findViewById(R.id.mapComponent);
+        this.surfaceHolder = this.surfaceView.getHolder();
+        this.surfaceHolder.addCallback(surfaceHolderCallback);
+        
+        surfaceView.setOnTouchListener(new OnTouchListener() {
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -29,5 +51,57 @@ public class MainActivity extends Activity {
 				return true;
 			}
 		});
+        
+        renderThread = new Thread(renderingLoop);
+        renderThread.start();
     }
+    
+    private SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
+		
+		@Override
+		public void surfaceDestroyed(SurfaceHolder holder) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void surfaceCreated(SurfaceHolder holder) {
+			// TODO Auto-generated method stub
+			renderFlag = true;
+		}
+		
+		@Override
+		public void surfaceChanged(SurfaceHolder holder, int format, int width,
+				int height) {
+			// TODO Auto-generated method stub
+			
+		}
+	};
+	
+	private Runnable renderingLoop = new Runnable() {
+		
+		@Override
+		public void run() {
+			boolean interrupedInternally = false;
+            
+	        while(!renderThread.isInterrupted() && !interrupedInternally) {
+	            try{
+	            	Thread.sleep(40);
+	            } catch(InterruptedException ie) {
+	            	interrupedInternally = true;
+	            }
+	            if(!renderFlag)
+	            	continue;
+	             
+	            try{
+	                canvas = surfaceHolder.lockCanvas();
+	                canvas.drawColor(Color.BLACK, PorterDuff.Mode.CLEAR);
+					JsonMapRenderer.draw(canvas, 0.0, 0.0, 1.0);
+	                surfaceHolder.unlockCanvasAndPost(canvas);
+	            } catch(Exception e) {
+	            	interrupedInternally = true;
+	            }
+	        }
+		}
+	};
 }
