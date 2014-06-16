@@ -37,6 +37,15 @@ public class JsonMapReader {
 				}
 				reader.endArray();
 				mapEnitities.put("walls", walls);
+			} else if(name.equals("gates")) {
+				List<JsonEntityGate> gates = new ArrayList<JsonEntityGate>();
+				
+				reader.beginArray();
+				while(reader.hasNext()) {
+					gates.add(readGate(reader));
+				}
+				reader.endArray();
+				mapEnitities.put("gates", gates);
 			} else {
 				reader.skipValue();
 			}
@@ -45,6 +54,37 @@ public class JsonMapReader {
 		return mapEnitities;
 	}
 	
+	private static JsonEntityGate readGate(JsonReader reader) throws IOException {
+		String id = null;
+		String type = null;
+		String kind = null;
+		Double blocked = -1.0;
+		PointF from = null;
+		PointF to = null;
+		
+		reader.beginObject();
+		while(reader.hasNext()) {
+			String name = reader.nextName();
+			if(name.equals("id")) {
+				id = reader.nextString();
+			} else if(name.equals("type")) {
+				type = reader.nextString();
+			} else if(name.equals("kind")) {
+				kind = reader.nextString();
+			} else if(name.equals("blocked")) {
+				blocked = reader.nextDouble();
+			} else if(name.equals("from") && reader.peek() != JsonToken.NULL) {
+				from = readDoublesXY(reader);
+			} else if(name.equals("to") && reader.peek() != JsonToken.NULL) {
+				to = readDoublesXY(reader);
+			} else {
+				reader.skipValue();
+			}
+		}
+		reader.endObject();
+		return new JsonEntityGate(id, type, kind, blocked, from, to);
+	}
+
 	public static JsonEntityWall readWall(JsonReader reader) throws IOException {
 		String id = null;
 		String type = null;
@@ -57,7 +97,7 @@ public class JsonMapReader {
 		reader.beginObject();
 		while(reader.hasNext()) {
 			String name = reader.nextName();
-			if (name.equals("type")) {
+			if(name.equals("type")) {
 				type = reader.nextString();
 			} else if(name.equals("id")) {
 				id = reader.nextString();
