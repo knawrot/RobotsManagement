@@ -1,4 +1,4 @@
-package com.example.robotsmanagement;
+package com.robotsmanagement.ui.map;
 
 import java.io.IOException;
 import java.io.InputStream;

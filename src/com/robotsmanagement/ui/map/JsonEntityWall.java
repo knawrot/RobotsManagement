@@ -1,4 +1,4 @@
-package com.example.robotsmanagement;
+package com.robotsmanagement.ui.map;
 
 import android.graphics.PointF;
 

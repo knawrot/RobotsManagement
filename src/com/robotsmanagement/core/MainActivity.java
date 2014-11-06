@@ -1,34 +1,51 @@
-package com.example.robotsmanagement;
+package com.robotsmanagement.core;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-/* 
- * TODO:
- * 1. Mniejsze przyciski
- */
+import com.example.robotsmanagement.R;
+import com.robotsmanagement.ui.list.ConnectionStatus;
+import com.robotsmanagement.ui.list.CustomListAdapter;
+import com.robotsmanagement.ui.list.CustomListItem;
+import com.robotsmanagement.ui.map.JsonMapRenderer;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Observer {
 
 	private SurfaceView surfaceView;
 	private SurfaceHolder surfaceHolder;
 	private Canvas canvas;
 	private Thread renderThread;
 	private boolean renderFlag;
+	private ListView list;
+	private final ArrayList<CustomListItem> items = new ArrayList<CustomListItem>();
 	private static final int NO_GESTURE = -1;
 	private static final int PINCH_ZOOM = 0;
 	private static final int DRAG_MOVE = 1;
@@ -58,11 +75,21 @@ public class MainActivity extends Activity {
 		this.surfaceHolder = this.surfaceView.getHolder();
 		this.surfaceHolder.addCallback(surfaceHolderCallback);
 
+		setUpRobotsList();
 		setUpListeners();
 
 		this.renderFlag = false;
 		this.renderThread = new Thread(renderingLoop);
 		this.renderThread.start();
+	}
+
+	private void setUpRobotsList() {
+		items.add(new CustomListItem("Damian", "255.255.255.0"));
+		items.add(new CustomListItem("Robert", "192.168.1.2"));
+		ArrayAdapter<CustomListItem> adapter = new CustomListAdapter(this,
+				R.layout.custom_list_item, items);
+		list = (ListView) findViewById(R.id.robotsList);
+		list.setAdapter(adapter);
 	}
 
 	private void setUpListeners() {
@@ -80,7 +107,6 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		final ListView list = (ListView) findViewById(R.id.robotsList);
 		list.setOnItemClickListener(new OnItemClickListener() {
 			View currentlySelected = null;
 
@@ -140,6 +166,67 @@ public class MainActivity extends Activity {
 			}
 		});
 
+		ImageButton addRobButton = (ImageButton) findViewById(R.id.addRobotButton);
+		addRobButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// (new AddRobotDialog()).show();
+				// items.add("Cos nowego");
+				// adapter.notifyDataSetChanged();
+				LayoutInflater layInf = LayoutInflater.from(MainActivity.this);
+				final View dialogView = layInf.inflate(
+						R.layout.add_robot_dialog, null);
+
+				AlertDialog.Builder addDialogBuilder = new AlertDialog.Builder(
+						MainActivity.this);
+				addDialogBuilder.setView(dialogView);
+				addDialogBuilder
+						.setTitle("Dodaj robota")
+						.setPositiveButton(R.string.addRobotAccept,
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int id) {
+										EditText nameInput = (EditText) dialogView
+												.findViewById(R.id.nameEditText);
+										EditText ipInput = (EditText) dialogView
+												.findViewById(R.id.ipEditText);
+
+										String name = nameInput.getText()
+												.toString();
+										String ip = ipInput.getText()
+												.toString();
+										CustomListItem newItem = new CustomListItem(
+												name, ip);
+										items.add(newItem);
+										newItem.addObserver(MainActivity.this);
+										((BaseAdapter) list.getAdapter())
+												.notifyDataSetChanged();
+										Toast.makeText(MainActivity.this,
+												"Dodano robota",
+												Toast.LENGTH_LONG).show();
+										new ConnectionEstabilishmentTask()
+												.execute(newItem);
+									}
+								})
+						.setNegativeButton(R.string.addRobotCancel,
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int id) {
+										// TODO: prawdopodbnie nie rob nic,
+										// ewentualnie
+										// dialog o bledzie czy cus
+									}
+								});
+
+				AlertDialog addDialog = addDialogBuilder.create();
+				addDialog.show();
+				// addDialog.getWindow().setLayout(450, 400);
+
+			}
+		});
 	}
 
 	private float calDistBtwFingers(MotionEvent event) {
@@ -179,6 +266,27 @@ public class MainActivity extends Activity {
 		}
 	};
 
+	@Override
+	public void update(Observable observable, Object data) {
+		CustomListItem item = (CustomListItem) data;
+		if (item.isConnected()) {
+			Log.d("CONNECTION RESULT", "Status of connection: "
+					+ ConnectionStatus.CONNECTED.name());
+			View listElemToEdit = list.getChildAt(items.indexOf(item));
+			TextView progressBar = (TextView) listElemToEdit
+					.findViewById(R.id.robotName);
+			ViewGroup parent = (ViewGroup) progressBar.getParent();
+			if (parent != null) {
+				Log.d("CONNECTION RESULT", progressBar.getText().toString());
+				parent.removeView(progressBar);
+			}
+			// parent.removeView(progressBar);
+		} else {
+			Log.d("CONNECTION RESULT", "Status of connection: "
+					+ ConnectionStatus.DISCONNECTED.name());
+		}
+	}
+
 	private final Runnable renderingLoop = new Runnable() {
 
 		@Override
@@ -207,4 +315,5 @@ public class MainActivity extends Activity {
 			}
 		}
 	};
+
 }
