@@ -6,11 +6,19 @@
     <string name="listTitle"><b>Lista robotow</b></string>
     
     <string name="addRobotButton">+</string>
+    <string name="addRobotName">Nazwa:</string>
+    <string name="addRobotIP">IP:</string>
+    <string name="addRobotAccept">Dodaj</string>
+    <string name="addRobotCancel">Anuluj</string>
 
     <string name="cameraButtonDesc">Streaming live</string>
     <string name="moreInfoButtonDesc">Info z czujnikow</string>
     <string name="colliDrawButtonDesc">Rysowanie kolizji</string>
     <string name="mapComponentDesc">Glowny komponent mapy</string>
+    
+    
+    <string name="anonymousRobotName">Anonim</string>
+    <string name="anonymousRobotIp">192.168.1.1</string>
     
 
 </resources>

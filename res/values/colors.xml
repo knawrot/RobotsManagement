@@ -2,9 +2,12 @@
 <resources>
     
     <color name="LIGHT_GRAY">#F3F3F3</color>
-	<color name="LIGHT_BLACK">#4F4F4F</color>
+	<color name="LIGHT_BLACK">#6E6D6D</color>
 	<color name="MEDIUM_GRAY">#DADADC</color>
 	<color name="GRASS_GREEN">#B4E820</color>
+	<color name="BORDERS_COLOR">#CCCCCC</color>
+	<color name="LIST_COLOR">#EDEDED</color>
+	<color name="BACKGROUND_COLOR">#DBDBDB</color>
 	
  
 </resources>
