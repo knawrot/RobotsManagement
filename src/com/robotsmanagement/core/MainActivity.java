@@ -5,13 +5,28 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.avcodec;
+import org.bytedeco.javacpp.avformat;
+import org.bytedeco.javacpp.swscale;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.swresample;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,18 +47,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.robotsmanagement.R;
+import com.robotsmanagement.core.stream.ActivateStreamTask;
+import com.robotsmanagement.core.stream.TaskDelegate;
 import com.robotsmanagement.ui.list.ConnectionStatus;
 import com.robotsmanagement.ui.list.CustomListAdapter;
 import com.robotsmanagement.ui.list.CustomListItem;
 import com.robotsmanagement.ui.map.JsonMapRenderer;
 
-public class MainActivity extends Activity implements Observer {
+public class MainActivity extends Activity implements Observer, TaskDelegate {
 
+	private FFmpegFrameGrabber grabber;
+	private IplImage grabbedImage;
 	private SurfaceView surfaceView;
 	private SurfaceHolder surfaceHolder;
 	private Canvas canvas;
 	private Thread renderThread;
 	private boolean renderFlag;
+	private boolean videoStream;
 	private ListView list;
 	private final ArrayList<CustomListItem> items = new ArrayList<CustomListItem>();
 	private static final int NO_GESTURE = -1;
@@ -58,10 +78,17 @@ public class MainActivity extends Activity implements Observer {
 	private float zoom = 15.0f;
 	private float oldDist = 0.0f;
 	private float newDist = 0.0f;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		//known bug fix
+		Loader.load(avcodec.class);
+		Loader.load(avformat.class);
+		Loader.load(swresample.class);
+		Loader.load(swscale.class);
+		
 		setContentView(R.layout.activity_main);
 
 		try {
@@ -78,6 +105,7 @@ public class MainActivity extends Activity implements Observer {
 		setUpRobotsList();
 		setUpListeners();
 
+		this.videoStream = false;
 		this.renderFlag = false;
 		this.renderThread = new Thread(renderingLoop);
 		this.renderThread.start();
@@ -167,6 +195,8 @@ public class MainActivity extends Activity implements Observer {
 		});
 
 		ImageButton addRobButton = (ImageButton) findViewById(R.id.addRobotButton);
+		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
+		
 		addRobButton.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -227,8 +257,11 @@ public class MainActivity extends Activity implements Observer {
 
 			}
 		});
+		
+		cameraButton.setOnClickListener(new ActivateStreamTask(this, //getPackageName(), 
+				getResources(), Environment.getExternalStorageDirectory()));
 	}
-
+	
 	private float calDistBtwFingers(MotionEvent event) {
 		float x = event.getX(0) - event.getX(1);
 		float y = event.getY(0) - event.getY(1);
@@ -304,16 +337,38 @@ public class MainActivity extends Activity implements Observer {
 					continue;
 
 				try {
+					Paint paint = new Paint();
+					
 					canvas = surfaceHolder.lockCanvas();
-					canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-					canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
-					JsonMapRenderer.draw(canvas, x, y, zoom);
+					if(!videoStream) {
+						canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+						canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
+						JsonMapRenderer.draw(canvas, x, y, zoom);
+					} else if((grabbedImage = grabber.grab()) != null) {
+						//TODO framerate
+						IplImage img = IplImage.create(grabbedImage.width(), grabbedImage.height(), IPL_DEPTH_8U, 4);  
+						cvCvtColor(grabbedImage, img, CV_BGR2RGBA);
+						Bitmap bmp = Bitmap.createBitmap(img.width(), img.height(), Config.ARGB_8888);
+						bmp.copyPixelsFromBuffer(img.getByteBuffer());
+
+						canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+						canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
+						canvas.drawBitmap(bmp, null, new Rect(300, 300, bmp.getWidth(), bmp.getHeight()), paint);
+					}
 					surfaceHolder.unlockCanvasAndPost(canvas);
 				} catch (Exception e) {
+					Log.e("RENDERING", "Error drawing frame!");
+					e.printStackTrace();
 					interrupedInternally = true;
 				}
 			}
 		}
 	};
+
+	@Override
+	public void streamActivationResult(FFmpegFrameGrabber result) {
+		this.grabber = result;
+		this.videoStream = true;
+	}
 
 }
