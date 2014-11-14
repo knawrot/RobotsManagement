@@ -325,35 +325,25 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 		@Override
 		public void run() {
 			boolean interrupedInternally = false;
-			// canvas.save();
-
+			
 			while (!renderThread.isInterrupted() && !interrupedInternally) {
-				try {
-					Thread.sleep(40);
-				} catch (InterruptedException ie) {
-					interrupedInternally = true;
-				}
+				long startTime = System.currentTimeMillis();
 				if (!renderFlag)
-					continue;
-
+					continue; 
+				
 				try {
 					Paint paint = new Paint();
-					
 					canvas = surfaceHolder.lockCanvas();
 					if(!videoStream) {
 						canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 						canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
 						JsonMapRenderer.draw(canvas, x, y, zoom);
 					} else if((grabbedImage = grabber.grab()) != null) {
-						//TODO framerate
-						IplImage img = IplImage.create(grabbedImage.width(), grabbedImage.height(), IPL_DEPTH_8U, 4);  
+						IplImage img = IplImage.create(grabbedImage.width(), grabbedImage.height(), IPL_DEPTH_8U, 4);
 						cvCvtColor(grabbedImage, img, CV_BGR2RGBA);
 						Bitmap bmp = Bitmap.createBitmap(img.width(), img.height(), Config.ARGB_8888);
 						bmp.copyPixelsFromBuffer(img.getByteBuffer());
-
-						canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-						canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
-						canvas.drawBitmap(bmp, null, new Rect(300, 300, bmp.getWidth(), bmp.getHeight()), paint);
+						canvas.drawBitmap(bmp, null, new Rect(0, 0, bmp.getWidth(), bmp.getHeight()), paint);
 					}
 					surfaceHolder.unlockCanvasAndPost(canvas);
 				} catch (Exception e) {
