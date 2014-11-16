@@ -8,6 +8,8 @@
 	<color name="BORDERS_COLOR">#CCCCCC</color>
 	<color name="LIST_COLOR">#EDEDED</color>
 	<color name="BACKGROUND_COLOR">#DBDBDB</color>
+	<color name="ONLINE_COLOR">#238e2d</color>
+	<color name="OFFLINE_COLOR">#DBDBDB</color>
 	
  
 </resources>
