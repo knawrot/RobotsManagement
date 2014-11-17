@@ -11,11 +11,16 @@
     <string name="addRobotAccept">Dodaj</string>
     <string name="addRobotCancel">Anuluj</string>
 
+    <!-- images descriptions -->
     <string name="cameraButtonDesc">Streaming live</string>
     <string name="moreInfoButtonDesc">Info z czujnikow</string>
     <string name="colliDrawButtonDesc">Rysowanie kolizji</string>
     <string name="mapComponentDesc">Glowny komponent mapy</string>
+    <string name="onlineImgViewDesc">Ikona dostepnosci</string>
+    <string name="offlineImgViewDesc">Ikona niedostepnosci</string>
     
+    <string name="onlineText">Dostępny</string>
+    <string name="offlineText">Niedostępny</string>    
     
     <string name="anonymousRobotName">Anonim</string>
     <string name="anonymousRobotIp">192.168.1.1</string>
