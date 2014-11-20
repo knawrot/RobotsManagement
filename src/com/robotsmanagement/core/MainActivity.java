@@ -80,6 +80,10 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 
 	private Handler guiUpdatesHandler;
 
+	public ArrayList<CustomListItem> getItems() {
+		return items;
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -103,6 +107,24 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 		this.renderFlag = false;
 		this.renderThread = new Thread(renderingLoop);
 		this.renderThread.start();
+
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						Thread.sleep(800);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
+					for (CustomListItem item : getItems()) {
+						(new LocationGrabberTask()).execute(item);
+					}
+				}
+			}
+		}).start();
 
 		guiUpdatesHandler = new Handler() {
 
@@ -201,11 +223,13 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 				case MotionEvent.ACTION_MOVE:
 					if (androidGesture == DRAG_MOVE) {
 						Log.i("EVENT", "DRAG");
-						// Log.d("DRAG_MEASUREMENT", "(" +
-						// Double.toString(event.getX() - startX) + "," +
-						// event.getY() - startY + ")");
-						x += (event.getX() - startX) * 0.1f;
-						y += (event.getY() - startY) * 0.1f;
+						Log.i("DRAG_MEASUREMENT",
+								"(" + Float.toString(event.getX() - startX)
+										+ ","
+										+ Float.toString(event.getY() - startY)
+										+ ")");
+						x += (event.getX() - startX) * 0.005f;
+						y += (event.getY() - startY) * 0.005f;
 					} else if (androidGesture == PINCH_ZOOM) {
 						Log.i("EVENT", "ZOOM");
 						newDist = calDistBtwFingers(event);
@@ -219,15 +243,6 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 					break;
 				}
 				return true;
-			}
-		});
-
-		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
-		cameraButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// items.get(0).setConnectionStatus(ConnectionStatus.DISCONNECTED);
 			}
 		});
 
@@ -284,8 +299,21 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 			}
 		});
 
+		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
 		cameraButton.setOnClickListener(new ActivateStreamTask(this, // getPackageName(),
 				getResources(), Environment.getExternalStorageDirectory()));
+
+		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
+		sonarButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO switch to drawing hokuyo info instead of map
+
+				// (new HokuyoSensorTask()).execute(items.get(0));
+			}
+		});
+
 	}
 
 	private float calDistBtwFingers(MotionEvent event) {
@@ -359,12 +387,13 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 				try {
 					Paint paint = new Paint();
 					canvas = surfaceHolder.lockCanvas();
-					if (!videoStream) {
-						canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-						canvas.drawColor(Color.TRANSPARENT,
-								PorterDuff.Mode.SCREEN);
-						JsonMapRenderer.draw(canvas, x, y, zoom);
-					} else if ((grabbedImage = grabber.grab()) != null) {
+
+					canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+					canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
+					JsonMapRenderer.draw(canvas, x, y, zoom);
+
+					// TODO draw robots location
+					if (videoStream && (grabbedImage = grabber.grab()) != null) {
 						IplImage img = IplImage.create(grabbedImage.width(),
 								grabbedImage.height(), IPL_DEPTH_8U, 4);
 						cvCvtColor(grabbedImage, img, CV_BGR2RGBA);

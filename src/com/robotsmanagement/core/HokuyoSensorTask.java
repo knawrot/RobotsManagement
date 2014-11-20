@@ -11,41 +11,42 @@ import android.util.Log;
 
 import com.robotsmanagement.ui.list.CustomListItem;
 
-public class HokuyoSensorTask extends
-		AsyncTask<CustomListItem, Void, Void> {
+public class HokuyoSensorTask extends AsyncTask<CustomListItem, Void, Void> {
 	CustomListItem listItem;
 	AmberClient client;
 
 	@Override
 	protected Void doInBackground(CustomListItem... params) {
-		Log.d("HOKUYO TASK",
+		Log.i("HOKUYO TASK",
 				"Acquiring position info from " + params[0].getIp());
-		
+
 		listItem = params[0];
 		client = listItem.getClient();
 		HokuyoProxy hokuyoProxy = new HokuyoProxy(client, 0);
-		
+
 		try {
 			// Synchronous receiving
 			Scan singleScan = hokuyoProxy.getSingleScan();
-			System.err.println(singleScan.getPoints());
-			System.out.println("Now registering cyclic data listener...");
+			Log.i("HOKUYO TASK", singleScan.getPoints().toString());
+			Log.i("HOKUYO TASK", "Now registering cyclic data listener...");
 			Thread.sleep(1000);
 			// Asynchronous receiving (with listener)
-			hokuyoProxy.registerMultiScanListener(new CyclicDataListener<Scan>() {
-				@Override
-				public void handle(Scan data) {
-					try {
-						System.out.println(data.getPoints());
-					} catch (Exception e) {
-						System.err.println("Exception occurred: " + e);
-					}
-				}
-			});
+			hokuyoProxy
+					.registerMultiScanListener(new CyclicDataListener<Scan>() {
+						@Override
+						public void handle(Scan data) {
+							try {
+								Log.i("HOKUYO TASK", data.getPoints()
+										.toString());
+							} catch (Exception e) {
+								Log.e("HOKUYO TASK", "Exception occurred: " + e);
+							}
+						}
+					});
 		} catch (IOException e) {
-			System.out.println("Error in sending a command: " + e);
+			Log.e("HOKUYO TASK", "Error in sending a command: " + e);
 		} catch (InterruptedException e) {
-			System.out.println("Interrupted");
+			Log.e("HOKUYO TASK", "Interrupted");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
