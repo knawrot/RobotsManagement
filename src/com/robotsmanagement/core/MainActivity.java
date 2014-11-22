@@ -1,29 +1,14 @@
 package com.robotsmanagement.core;
 
-import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_8U;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2RGBA;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.bytedeco.javacpp.opencv_core.IplImage;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -47,38 +32,35 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.robotsmanagement.R;
-import com.robotsmanagement.core.stream.ActivateStreamTask;
+import com.robotsmanagement.core.stream.StreamRequestListener;
 import com.robotsmanagement.core.stream.TaskDelegate;
 import com.robotsmanagement.ui.list.ConnectionStatus;
 import com.robotsmanagement.ui.list.CustomListAdapter;
 import com.robotsmanagement.ui.list.CustomListItem;
 import com.robotsmanagement.ui.map.JsonMapRenderer;
 
-public class MainActivity extends Activity implements Observer, TaskDelegate {
+public class MainActivity extends Activity implements Observer {
 
-	private FFmpegFrameGrabber grabber;
-	private IplImage grabbedImage;
 	private SurfaceView surfaceView;
 	private SurfaceHolder surfaceHolder;
-	private Canvas canvas;
-	private Thread renderThread;
-	private boolean renderFlag;
-	private boolean videoStream;
+	private RenderThread renderThread;
+	private LocationThread locationThread;
 	private ListView list;
 	private final ArrayList<CustomListItem> items = new ArrayList<CustomListItem>();
 	private static final int NO_GESTURE = -1;
 	private static final int PINCH_ZOOM = 0;
 	private static final int DRAG_MOVE = 1;
 	private int androidGesture = NO_GESTURE;
-	private float x = 0.0f;
-	private float y = 0.0f;
 	private float startX = 0.0f;
 	private float startY = 0.0f;
-	private float zoom = 15.0f;
 	private float oldDist = 0.0f;
 	private float newDist = 0.0f;
 
 	private Handler guiUpdatesHandler;
+
+	public ArrayList<CustomListItem> getItems() {
+		return items;
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -98,28 +80,6 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 
 		setUpRobotsList();
 		setUpListeners();
-
-		this.videoStream = false;
-		this.renderFlag = false;
-		this.renderThread = new Thread(renderingLoop);
-		this.renderThread.start();
-		
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				for(CustomListItem item: items) {
-					(new LocationGrabberTask()).execute(item);
-				};
-			}
-			
-		}).start();
 
 		guiUpdatesHandler = new Handler() {
 
@@ -218,16 +178,18 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 				case MotionEvent.ACTION_MOVE:
 					if (androidGesture == DRAG_MOVE) {
 						Log.i("EVENT", "DRAG");
-						// Log.d("DRAG_MEASUREMENT", "(" +
-						// Double.toString(event.getX() - startX) + "," +
-						// event.getY() - startY + ")");
-						x += (event.getX() - startX) * 0.1f;
-						y += (event.getY() - startY) * 0.1f;
+						Log.i("DRAG_MEASUREMENT",
+								"(" + Float.toString(event.getX() - startX)
+										+ ","
+										+ Float.toString(event.getY() - startY)
+										+ ")");
+						renderThread.setX(renderThread.getX() + (event.getX() - startX) * 0.005f);
+						renderThread.setY(renderThread.getY() + (event.getY() - startY) * 0.005f);
 					} else if (androidGesture == PINCH_ZOOM) {
 						Log.i("EVENT", "ZOOM");
 						newDist = calDistBtwFingers(event);
 						if (newDist > 10f) {
-							zoom *= newDist / oldDist;
+							renderThread.setZoom(renderThread.getZoom() * newDist / oldDist);
 							// x = ?
 							// y = ?
 						}
@@ -293,17 +255,18 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 		});
 
 		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
-		cameraButton.setOnClickListener(new ActivateStreamTask(this, // getPackageName(),
-				getResources(), Environment.getExternalStorageDirectory()));
+		cameraButton.setOnClickListener(new StreamRequestListener(this, (TaskDelegate) renderThread));
 		
 		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
 		sonarButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				//TODO switch to drawing hokuyo info instead of map
-				
-				(new HokuyoSensorTask()).execute(items.get(list.getSelectedItemPosition()));			
+				if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
+						return;
+
+				// TODO switch to drawing hokuyo info instead of map
+				(new HokuyoSensorTask()).execute(getSelectedItem());			
 			}
 		});
 		
@@ -348,72 +311,80 @@ public class MainActivity extends Activity implements Observer, TaskDelegate {
 
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
-			// TODO Auto-generated method stub
-
+			Log.i("SurfaceHolder", "wywo³anie surfaceDestroyed()");
+			renderThread.interrupt();
+			try {
+				renderThread.join();
+			} catch (InterruptedException e) {
+				Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
+				e.printStackTrace();
+			}
 		}
 
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
-			// TODO Auto-generated method stub
-			renderFlag = true;
+			Log.i("SurfaceHolder", "wywo³anie surfaceCreated()");
+			renderThread.start();
 		}
 
 		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width,
-				int height) {
-			// TODO Auto-generated method stub
-
+		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+			Log.i("SurfaceHolder", "wywo³anie surfaceChanged()");
 		}
 	};
 
-	private final Runnable renderingLoop = new Runnable() {
-
-		@Override
-		public void run() {
-			boolean interrupedInternally = false;
-			// canvas.save();
-
-			while (!renderThread.isInterrupted() && !interrupedInternally) {
-				if (!renderFlag)
-					continue;
-
-				try {
-					Paint paint = new Paint();
-					canvas = surfaceHolder.lockCanvas();
-
-					canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-					canvas.drawColor(Color.TRANSPARENT,
-							PorterDuff.Mode.SCREEN);
-					JsonMapRenderer.draw(canvas, x, y, zoom);
-						
-						//TODO draw robots location
-					if(videoStream && (grabbedImage = grabber.grab()) != null) {
-						IplImage img = IplImage.create(grabbedImage.width(),
-								grabbedImage.height(), IPL_DEPTH_8U, 4);
-						cvCvtColor(grabbedImage, img, CV_BGR2RGBA);
-						Bitmap bmp = Bitmap.createBitmap(img.width(),
-								img.height(), Config.ARGB_8888);
-						bmp.copyPixelsFromBuffer(img.getByteBuffer());
-						canvas.drawBitmap(
-								bmp,
-								null,
-								new Rect(0, 0, bmp.getWidth(), bmp.getHeight()),
-								paint);
-					}
-					surfaceHolder.unlockCanvasAndPost(canvas);
-				} catch (Exception e) {
-					Log.e("RENDERING", "Error drawing frame!");
-					e.printStackTrace();
-					interrupedInternally = true;
-				}
-			}
-		}
-	};
-
+	// zarz¹dzanie w¹tkami renderowania i lokalizacji:
+	
 	@Override
-	public void streamActivationResult(FFmpegFrameGrabber result) {
-		this.grabber = result;
-		this.videoStream = true;
+	protected void onPause() {
+		super.onPause();
+		
+		renderThread.interrupt();
+		try {
+			renderThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		locationThread.interrupt();
+		try {
+			locationThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		locationThread = new LocationThread(this);
+		locationThread.start();
+		
+		renderThread = new RenderThread(this);
+	}
+
+	public CustomListItem getSelectedItem() {
+		if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
+			return null;
+		else
+			return getItems().get(getList().getSelectedItemPosition());
+	}
+
+	public Thread getRenderThread() {
+		return renderThread;
+	}
+
+	public Thread getLocationThread() {
+		return locationThread;
+	}
+
+	public SurfaceHolder getSurfaceHolder() {
+		return surfaceHolder;
+	}
+
+	public ListView getList() {
+		return list;
+	}
+	
 }
