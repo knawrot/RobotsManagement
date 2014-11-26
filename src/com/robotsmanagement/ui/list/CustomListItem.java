@@ -70,13 +70,18 @@ public class CustomListItem extends Observable {
 		notifyObservers(this);
 	}
 	
-	public void draw(Canvas canvas, float zoom) {
+	public void draw(Canvas canvas, float x, float y, float zoom) {
 		Paint paint = new Paint();
 		paint.setColor(Color.LTGRAY);
 		
-		canvas.drawArc(new RectF((int) location.getX() - DOT_SIZE, (int) location.getY() - DOT_SIZE, 
-				(int) location.getX() + DOT_SIZE, (int) location.getY() + DOT_SIZE), 
-				0, 360, true, paint);
+		if(location == null)
+			return;
+
+		int newX = (int) ((location.getX() - x) * zoom);
+		int newY = (int) ((location.getY() - y) * zoom);
+		
+		canvas.drawArc(new RectF(newX - DOT_SIZE, newY - DOT_SIZE, 
+				newX + DOT_SIZE, (int) newY + DOT_SIZE), 0, 360, true, paint);
 	}
 
 }

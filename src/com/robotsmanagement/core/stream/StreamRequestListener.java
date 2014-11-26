@@ -8,8 +8,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
 
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
@@ -33,18 +31,16 @@ import android.view.View.OnClickListener;
 public class StreamRequestListener implements OnClickListener {
 	
 	private final static String tag = StreamRequestListener.class.getName();
-	private final static String login = "robolab";
-	private final static String password = "robolab2013";
+	private final static String login = "panda";
+	private final static String password = "panda2013";
 
 	private FFmpegFrameGrabber grabber;
 	private MainActivity activity;
-	private TaskDelegate delegate;
 	private String lastRobotIp;
 	private String lastIp;
 	
-	public StreamRequestListener(MainActivity activity, TaskDelegate delegate) {
+	public StreamRequestListener(MainActivity activity) {
 		this.activity = activity;
-		this.delegate = delegate;
 		
 	    try {
 	    	InputStream in = activity.getResources().openRawResource(R.raw.stream);
@@ -69,8 +65,8 @@ public class StreamRequestListener implements OnClickListener {
 
 	@Override
 	public void onClick(View v) { 
-		if(activity.getSelectedItem() == null)
-				return;
+//		if(activity.getSelectedItem() == null)
+//				return;
 		
 		try {
 			execSSHCommand(lastRobotIp, "tokill=`ps aux | grep \"ffmpeg -f v4l2 -i /dev/video0 -r 10 -f rtp rtp://" +
@@ -92,15 +88,17 @@ public class StreamRequestListener implements OnClickListener {
 		        try {
 		    		WifiInfo wi = ((WifiManager) activity.getSystemService(Context.WIFI_SERVICE)).getConnectionInfo();
 		    	    byte[] bIp = BigInteger.valueOf(wi.getIpAddress()).toByteArray();
-		    	    Collections.reverse(Arrays.asList(bIp));
-		    	    InetAddress ia = InetAddress.getByAddress(bIp);
+		    	    byte[] bIp2 = new byte[bIp.length];
+		    	    for(int i = 0; i < bIp.length; i++)
+		    	    	bIp2[bIp2.length - 1 - i] = bIp[i];
+		    	    InetAddress ia = InetAddress.getByAddress(bIp2);
 		    	    String ip = ia.getHostAddress();
 
 		    		Log.i(tag, "IP urz¹dzenia: " + ip + 
 		    				"\nIP robota: " + param[0] +
 		    				"\nInicjowanie po³¹czenia SSH...");
-					execSSHCommand(param[0], "ffmpeg -f v4l2 -i /dev/video0 -r 10 -f rtp rtp://" 
-							+ ip + ":1234 </dev/null >/dev/null 2>/dev/null &");
+					execSSHCommand(param[0], "echo " + password + " | sudo -S ffmpeg -f video4linux2 -i /dev/video0 -r 10 -f rtp rtp://" 
+							+ ip + ":1234");
 					lastIp = ip;
 					lastRobotIp = param[0];
 					
@@ -129,9 +127,9 @@ public class StreamRequestListener implements OnClickListener {
 
 			@Override
 			protected void onPostExecute(FFmpegFrameGrabber grabber) {   
-		        delegate.streamActivationResult(grabber);
+		        ((TaskDelegate) activity.getRenderThread()).streamActivationResult(grabber);
 		    }
-		}.execute(activity.getSelectedItem().getIp());
+		}.execute("192.168.2.202");//activity.getSelectedItem().getIp());
 	}
 	
 	private void execSSHCommand(String address, String command) throws JSchException, IOException {

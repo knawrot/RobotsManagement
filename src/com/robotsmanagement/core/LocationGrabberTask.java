@@ -20,7 +20,7 @@ public class LocationGrabberTask extends
 
 	@Override
 	protected Void doInBackground(CustomListItem... params) {
-		Log.i("LOCATION TASK",
+		Log.d("LOCATION TASK",
 				"Acquiring position info from " + params[0].getIp());
 		
 		listItem = params[0];
@@ -29,11 +29,14 @@ public class LocationGrabberTask extends
 		
 		try {
 			LocationCurrent lok = locationProxy.getCurrentLocation();
-			lok.waitAvailable();
+			lok.waitAvailable(3000);
 			
+			if(!lok.isAvailable())
+				return null;
+				
 			params[0].setLocation(new Point(lok.getX(), lok.getY()));
 			
-			Log.i(tag, String.format("Current location: X: %e, Y: %e, Alfa: %e, P: %e, TimeStamp: %e",
+			Log.d(tag, String.format("Current location: X: %e, Y: %e, Alfa: %e, P: %e, TimeStamp: %e",
 					lok.getX(), lok.getY(), lok.getAngle(),
 					lok.getP(), lok.getTimeStamp()));
 		} catch (IOException e) {

@@ -25,15 +25,11 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.robotsmanagement.R;
 import com.robotsmanagement.core.stream.StreamRequestListener;
-import com.robotsmanagement.core.stream.TaskDelegate;
 import com.robotsmanagement.ui.list.ConnectionStatus;
 import com.robotsmanagement.ui.list.CustomListAdapter;
 import com.robotsmanagement.ui.list.CustomListItem;
@@ -87,29 +83,29 @@ public class MainActivity extends Activity implements Observer {
 			public void handleMessage(Message msg) {
 				// TODO: handle null pointer excep
 				Log.d("HANDLING MESSAGE", "Handling message");
-				View listElemToEdit = (View) msg.obj;
-				ProgressBar progressBar = (ProgressBar) listElemToEdit
-						.findViewById(R.id.progressBar);
-				progressBar.setVisibility(View.INVISIBLE);
-				TextView offlineStatus = (TextView) listElemToEdit
-						.findViewById(R.id.offlineTextView);
-				TextView onlineStatus = (TextView) listElemToEdit
-						.findViewById(R.id.onlineTextView);
-				ImageView offlineImage = (ImageView) listElemToEdit
-						.findViewById(R.id.offlineImgView);
-				ImageView onlineImage = (ImageView) listElemToEdit
-						.findViewById(R.id.onlineImgView);
-				if (msg.what == 0) {
-					offlineImage.setVisibility(View.VISIBLE);
-					offlineStatus.setVisibility(View.VISIBLE);
-					onlineImage.setVisibility(View.INVISIBLE);
-					onlineStatus.setVisibility(View.INVISIBLE);
-				} else if (msg.what == 1) {
-					offlineImage.setVisibility(View.INVISIBLE);
-					offlineStatus.setVisibility(View.INVISIBLE);
-					onlineImage.setVisibility(View.VISIBLE);
-					onlineStatus.setVisibility(View.VISIBLE);
-				}
+//				View listElemToEdit = (View) msg.obj;
+//				ProgressBar progressBar = (ProgressBar) listElemToEdit
+//						.findViewById(R.id.progressBar);
+//				progressBar.setVisibility(View.INVISIBLE);
+//				TextView offlineStatus = (TextView) listElemToEdit
+//						.findViewById(R.id.offlineTextView);
+//				TextView onlineStatus = (TextView) listElemToEdit
+//						.findViewById(R.id.onlineTextView);
+//				ImageView offlineImage = (ImageView) listElemToEdit
+//						.findViewById(R.id.offlineImgView);
+//				ImageView onlineImage = (ImageView) listElemToEdit
+//						.findViewById(R.id.onlineImgView);
+//				if (msg.what == 0) {
+//					offlineImage.setVisibility(View.VISIBLE);
+//					offlineStatus.setVisibility(View.VISIBLE);
+//					onlineImage.setVisibility(View.INVISIBLE);
+//					onlineStatus.setVisibility(View.INVISIBLE);
+//				} else if (msg.what == 1) {
+//					offlineImage.setVisibility(View.INVISIBLE);
+//					offlineStatus.setVisibility(View.INVISIBLE);
+//					onlineImage.setVisibility(View.VISIBLE);
+//					onlineStatus.setVisibility(View.VISIBLE);
+//				}
 			}
 
 		};
@@ -255,18 +251,18 @@ public class MainActivity extends Activity implements Observer {
 		});
 
 		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
-		cameraButton.setOnClickListener(new StreamRequestListener(this, (TaskDelegate) renderThread));
+		cameraButton.setOnClickListener(new StreamRequestListener(this));
 		
 		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
 		sonarButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
-						return;
+//				if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
+//						return;
 
 				// TODO switch to drawing hokuyo info instead of map
-				(new HokuyoSensorTask()).execute(getSelectedItem());			
+				(new HokuyoSensorTask()).execute(getItems().get(0));//getSelectedItem());			
 			}
 		});
 		
@@ -359,16 +355,19 @@ public class MainActivity extends Activity implements Observer {
 		super.onResume();
 
 		locationThread = new LocationThread(this);
-		locationThread.start();
+		//locationThread.start();
 		
 		renderThread = new RenderThread(this);
 	}
 
 	public CustomListItem getSelectedItem() {
-		if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
+		if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION) {
+			Log.i("getSelectedItem()", "Brak zaznaczenia!");
 			return null;
-		else
+		} else {
+			Log.i("getSelectedItem()", "Robot #" + getList().getSelectedItemPosition());
 			return getItems().get(getList().getSelectedItemPosition());
+		}
 	}
 
 	public Thread getRenderThread() {

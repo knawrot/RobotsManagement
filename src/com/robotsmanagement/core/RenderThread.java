@@ -51,7 +51,7 @@ public class RenderThread extends Thread implements TaskDelegate {
 			
 			// oznaczanie lokalizacji robotów na mapie 
 			for(CustomListItem item : activity.getItems())
-				item.draw(canvas, zoom);
+				item.draw(canvas, x, y, zoom);
 				
 			// wyœwietlanie strumienia wideo z kamery robota
 			try {
