@@ -25,7 +25,8 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:inputType="text" >
+            android:inputType="text"
+            android:text="robot" >
 
             <requestFocus />
         </EditText>
@@ -48,7 +49,8 @@
         android:id="@+id/ipEditText"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:inputType="text" />
+        android:inputType="text"
+        android:text="192.168.1.11" />
 
     
     </LinearLayout>

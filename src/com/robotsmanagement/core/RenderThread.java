@@ -29,7 +29,7 @@ public class RenderThread extends Thread implements TaskDelegate {
 	private IplImage grabbedImage;
 	private FFmpegFrameGrabber grabber;
 	private Canvas canvas;
-	private boolean videoStream;
+	private boolean streamRunning;
 	private float x = 0.0f;
 	private float y = 0.0f;
 	private float zoom = 15.0f;
@@ -54,7 +54,7 @@ public class RenderThread extends Thread implements TaskDelegate {
 				
 			// wyœwietlanie strumienia wideo z kamery robota
 			try {
-				if(videoStream && (grabbedImage = grabber.grab()) != null) {
+				if(isStreamRunning() && (grabbedImage = grabber.grab()) != null) {
 					IplImage img = IplImage.create(grabbedImage.width(), grabbedImage.height(), IPL_DEPTH_8U, 4);
 					cvCvtColor(grabbedImage, img, CV_BGR2RGBA);
 					Bitmap bmp = Bitmap.createBitmap(img.width(), img.height(), Config.ARGB_8888);
@@ -75,7 +75,7 @@ public class RenderThread extends Thread implements TaskDelegate {
 		this.grabber = result;
 		
 		if(result != null)
-			this.videoStream = true;
+			setStreamRunning(true);
 	}
 
 	public void setX(float x) {
@@ -100,6 +100,14 @@ public class RenderThread extends Thread implements TaskDelegate {
 
 	public float getZoom() {
 		return zoom;
+	}
+
+	public boolean isStreamRunning() {
+		return streamRunning;
+	}
+
+	public void setStreamRunning(boolean streamRunning) {
+		this.streamRunning = streamRunning;
 	}
 	
 }

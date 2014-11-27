@@ -19,7 +19,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -313,17 +312,7 @@ public class MainActivity extends Activity implements Observer {
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
 			Log.i("SurfaceHolder", "wywo³anie surfaceDestroyed()");
-			renderThread.interrupt();
-			boolean wait = true;
-			while(wait) {
-				try {
-					renderThread.join();
-					wait = false;
-				} catch (InterruptedException e) {
-					Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
-					e.printStackTrace();
-				}
-			}
+			stop(renderThread);
 		}
 
 		@Override
@@ -345,27 +334,8 @@ public class MainActivity extends Activity implements Observer {
 	protected void onPause() {
 		super.onPause();
 		Log.i("SurfaceHolder", "wywo³anie onPause()");
-		
-		boolean wait = true;
-		while(wait) {
-			try {
-				renderThread.join();
-				wait = false;
-			} catch (InterruptedException e) {
-				Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
-				e.printStackTrace();
-			}
-		}
-		
-		wait = true;
-		while(wait) {
-			locationThread.interrupt();
-			try {
-				locationThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		stop(renderThread);
+		stop(locationThread);
 	}
 
 	@Override
@@ -380,16 +350,28 @@ public class MainActivity extends Activity implements Observer {
 		if(surfaceCreated && !renderThread.isAlive())
 			renderThread.start();
 	}
+	
+	private void stop(Thread thread) {
+		boolean wait = true;
+		while(wait) {
+			thread.interrupt();
+			try {
+				thread.join();
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	public CustomListItem getSelectedItem() {
 		return selectedItem;
 	}
 
-	public Thread getRenderThread() {
+	public RenderThread getRenderThread() {
 		return renderThread;
 	}
 
-	public Thread getLocationThread() {
+	public LocationThread getLocationThread() {
 		return locationThread;
 	}
 
