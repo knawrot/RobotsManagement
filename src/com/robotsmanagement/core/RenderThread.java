@@ -38,7 +38,6 @@ public class RenderThread extends Thread implements TaskDelegate {
 		this.activity = activity;
 	}
 	
-	// TODO if canvas != null -> synchronized surfaceholder na kazdej metodzie draw (?)
 	@Override
 	public void run() {
 		while(!activity.getRenderThread().isInterrupted()) {
@@ -60,7 +59,7 @@ public class RenderThread extends Thread implements TaskDelegate {
 					cvCvtColor(grabbedImage, img, CV_BGR2RGBA);
 					Bitmap bmp = Bitmap.createBitmap(img.width(), img.height(), Config.ARGB_8888);
 					bmp.copyPixelsFromBuffer(img.getByteBuffer());
-					canvas.drawBitmap(bmp, null, new Rect(0, 0, bmp.getWidth(), bmp.getHeight()), new Paint());
+					canvas.drawBitmap(bmp, null, new Rect(0, 0, bmp.getWidth()/2, bmp.getHeight()/2), new Paint());
 				}
 			} catch(Exception e) {
 				Log.e(tag, "Error drawing camera frame!");
@@ -74,7 +73,9 @@ public class RenderThread extends Thread implements TaskDelegate {
 	@Override
 	public void streamActivationResult(FFmpegFrameGrabber result) {
 		this.grabber = result;
-		this.videoStream = true;
+		
+		if(result != null)
+			this.videoStream = true;
 	}
 
 	public void setX(float x) {

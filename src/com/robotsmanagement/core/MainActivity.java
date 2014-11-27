@@ -19,6 +19,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -42,6 +43,7 @@ public class MainActivity extends Activity implements Observer {
 	private RenderThread renderThread;
 	private LocationThread locationThread;
 	private ListView list;
+	private CustomListItem selectedItem;
 	private final ArrayList<CustomListItem> items = new ArrayList<CustomListItem>();
 	private static final int NO_GESTURE = -1;
 	private static final int PINCH_ZOOM = 0;
@@ -51,6 +53,7 @@ public class MainActivity extends Activity implements Observer {
 	private float startY = 0.0f;
 	private float oldDist = 0.0f;
 	private float newDist = 0.0f;
+	private boolean surfaceCreated = false;
 
 	private Handler guiUpdatesHandler;
 
@@ -142,6 +145,8 @@ public class MainActivity extends Activity implements Observer {
 				// TODO: uaktywnij ikony z szarego koloru jesli jeszcze nie sa
 				// aktywne; blad przy ponownym (potrojnym dotknieciu tego samego
 				// itemu)
+				selectedItem = (CustomListItem) parent.getItemAtPosition(position);
+				
 				view.setBackgroundColor(getResources().getColor(
 						R.color.GRASS_GREEN));
 				if (currentlySelected != null)
@@ -309,11 +314,15 @@ public class MainActivity extends Activity implements Observer {
 		public void surfaceDestroyed(SurfaceHolder holder) {
 			Log.i("SurfaceHolder", "wywo³anie surfaceDestroyed()");
 			renderThread.interrupt();
-			try {
-				renderThread.join();
-			} catch (InterruptedException e) {
-				Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
-				e.printStackTrace();
+			boolean wait = true;
+			while(wait) {
+				try {
+					renderThread.join();
+					wait = false;
+				} catch (InterruptedException e) {
+					Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -321,6 +330,7 @@ public class MainActivity extends Activity implements Observer {
 		public void surfaceCreated(SurfaceHolder holder) {
 			Log.i("SurfaceHolder", "wywo³anie surfaceCreated()");
 			renderThread.start();
+			surfaceCreated = true;
 		}
 
 		@Override
@@ -334,40 +344,45 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		Log.i("SurfaceHolder", "wywo³anie onPause()");
 		
-		renderThread.interrupt();
-		try {
-			renderThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		boolean wait = true;
+		while(wait) {
+			try {
+				renderThread.join();
+				wait = false;
+			} catch (InterruptedException e) {
+				Log.w("SurfaceHolder", "Nie uda³o siê poprawnie zamkn¹æ w¹tku renderowania.");
+				e.printStackTrace();
+			}
 		}
 		
-		locationThread.interrupt();
-		try {
-			locationThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		wait = true;
+		while(wait) {
+			locationThread.interrupt();
+			try {
+				locationThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.i("SurfaceHolder", "wywo³anie onResume()");
 
 		locationThread = new LocationThread(this);
 		//locationThread.start();
 		
 		renderThread = new RenderThread(this);
+		if(surfaceCreated && !renderThread.isAlive())
+			renderThread.start();
 	}
 
 	public CustomListItem getSelectedItem() {
-		if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION) {
-			Log.i("getSelectedItem()", "Brak zaznaczenia!");
-			return null;
-		} else {
-			Log.i("getSelectedItem()", "Robot #" + getList().getSelectedItemPosition());
-			return getItems().get(getList().getSelectedItemPosition());
-		}
+		return selectedItem;
 	}
 
 	public Thread getRenderThread() {

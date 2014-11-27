@@ -31,8 +31,8 @@ import android.view.View.OnClickListener;
 public class StreamRequestListener implements OnClickListener {
 	
 	private final static String tag = StreamRequestListener.class.getName();
-	private final static String login = "panda";
-	private final static String password = "panda2013";
+	private final static String login = "lorens";
+	private final static String password = "konik001";
 
 	private FFmpegFrameGrabber grabber;
 	private MainActivity activity;
@@ -41,7 +41,7 @@ public class StreamRequestListener implements OnClickListener {
 	
 	public StreamRequestListener(MainActivity activity) {
 		this.activity = activity;
-		
+
 	    try {
 	    	InputStream in = activity.getResources().openRawResource(R.raw.stream);
 	    	OutputStream out = new FileOutputStream(Environment.getExternalStorageDirectory().toString() + "/stream.sdp");
@@ -65,19 +65,8 @@ public class StreamRequestListener implements OnClickListener {
 
 	@Override
 	public void onClick(View v) { 
-//		if(activity.getSelectedItem() == null)
-//				return;
-		
-		try {
-			execSSHCommand(lastRobotIp, "tokill=`ps aux | grep \"ffmpeg -f v4l2 -i /dev/video0 -r 10 -f rtp rtp://" +
-					lastIp + ":1234\" | awk '{ print $2 }'`; kill -9 $tokill");
-		} catch (JSchException e) {
-			Log.w(tag, "Napotkano b³¹d podczas próby zamkniêcia ostatnio u¿ywanego strumienia.");
-			e.printStackTrace();
-		} catch (IOException e) {
-			Log.w(tag, "Napotkano b³¹d podczas próby zamkniêcia ostatnio u¿ywanego strumienia.");
-			e.printStackTrace();
-		}
+		if(activity.getSelectedItem() == null)
+				return;
 		
 		new AsyncTask<String, Void, FFmpegFrameGrabber>() {
 
@@ -85,6 +74,17 @@ public class StreamRequestListener implements OnClickListener {
 			protected FFmpegFrameGrabber doInBackground(String... param) {
 				Log.i(tag, "Uruchamianie strumieniowania wideo...");
 				
+		        try {
+					execSSHCommand(lastRobotIp, "tokill=`ps aux | grep \"ffmpeg -f v4l2 -i /dev/video0 -r 10 -f rtp rtp://" +
+							lastIp + ":1234\" | awk '{ print $2 }'`; kill -9 $tokill");
+				} catch (JSchException e) {
+					Log.w(tag, "Napotkano b³¹d podczas próby zamkniêcia ostatnio u¿ywanego strumienia.");
+					e.printStackTrace();
+				} catch (IOException e) {
+					Log.w(tag, "Napotkano b³¹d podczas próby zamkniêcia ostatnio u¿ywanego strumienia.");
+					e.printStackTrace();
+				}
+		        
 		        try {
 		    		WifiInfo wi = ((WifiManager) activity.getSystemService(Context.WIFI_SERVICE)).getConnectionInfo();
 		    	    byte[] bIp = BigInteger.valueOf(wi.getIpAddress()).toByteArray();
@@ -96,15 +96,20 @@ public class StreamRequestListener implements OnClickListener {
 
 		    		Log.i(tag, "IP urz¹dzenia: " + ip + 
 		    				"\nIP robota: " + param[0] +
-		    				"\nInicjowanie po³¹czenia SSH...");
-					execSSHCommand(param[0], "echo " + password + " | sudo -S ffmpeg -f video4linux2 -i /dev/video0 -r 10 -f rtp rtp://" 
-							+ ip + ":1234");
-					lastIp = ip;
+		    				"\nInicjowanie po³¹czenia SSH..." +
+		    				"\nnohup ffmpeg -f video4linux2 -i /dev/video0 -pix_fmt yuv420p -r 7 -f rtp rtp://" 
+		    				+ ip + ":1234 &");
+		    		/////TODO !!!!!!!!!!!!!!!!!!!!change path!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					execSSHCommand(param[0], "nohup /home/lorens/bin/ffmpeg -f video4linux2 -i /dev/video0 -pix_fmt yuv420p -r 7 -f rtp rtp://" 
+							+ ip + ":1234 < /dev/null > /dev/null 2>&1 &");
+//					execSSHCommand(param[0], "echo " + password + " | sudo -S ffmpeg -f video4linux2 -i /dev/video0 -r 10 -f rtp rtp://" 
+//					+ ip + ":1234"); 
+					lastIp = ip; 
 					lastRobotIp = param[0];
 					
 					Log.i(tag, "Przygotowywanie do odbierania strumienia...");
-					grabber = FFmpegFrameGrabber.createDefault(new File(
-							Environment.getExternalStorageDirectory().toString(), "stream.sdp"));
+					grabber = FFmpegFrameGrabber.createDefault(
+							new File(Environment.getExternalStorageDirectory().toString(), "stream.sdp"));
 					Log.i(tag, "Oczekiwanie na po³¹czenie ze strumieniem wideo...");
 					grabber.start();
 					Log.i(tag, "Pomyœlnie po³¹czono ze strumieniem.");
@@ -129,7 +134,7 @@ public class StreamRequestListener implements OnClickListener {
 			protected void onPostExecute(FFmpegFrameGrabber grabber) {   
 		        ((TaskDelegate) activity.getRenderThread()).streamActivationResult(grabber);
 		    }
-		}.execute("192.168.2.202");//activity.getSelectedItem().getIp());
+		}.execute(activity.getSelectedItem().getIp());
 	}
 	
 	private void execSSHCommand(String address, String command) throws JSchException, IOException {
@@ -140,26 +145,9 @@ public class StreamRequestListener implements OnClickListener {
 	    session.connect(8000);
 	    
 	    ChannelExec channel = (ChannelExec) session.openChannel("exec");
-//        InputStream is = channel.getInputStream();
 		Log.i(tag, "Uruchamianie FFMPEG...");
 		channel.setCommand(command);
         channel.connect();
-        
-//        byte[] tmp = new byte[1024];
-//        while(true){
-//		    while(is.available() > 0) {
-//		    	if(is.read(tmp, 0, 1024) < 0)
-//		    		break;
-//		    	Log.i(tag, new String(tmp));
-//		    }
-//		    if(channel.isClosed()) {
-//		    	if(is.available()>0) continue;
-//		    	Log.i(tag, "exit-status: " + channel.getExitStatus());
-//		    	break;
-//		    }
-//			try{Thread.sleep(1000);}catch(Exception ee){}
-//    	} 
-
         channel.disconnect();
 	    session.disconnect();
 	}
