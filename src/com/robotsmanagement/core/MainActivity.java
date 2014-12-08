@@ -25,7 +25,10 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.robotsmanagement.R;
@@ -67,7 +70,8 @@ public class MainActivity extends Activity implements Observer {
 		setContentView(R.layout.activity_main);
 
 		try {
-			JsonMapRenderer.load(getApplicationContext(), "second_floor_rooms2");
+			JsonMapRenderer
+					.load(getApplicationContext(), "second_floor_rooms2");
 		} catch (IOException e) {
 			Log.e("MAP LOADER", "Jeb³o w chuj");
 		}
@@ -85,29 +89,29 @@ public class MainActivity extends Activity implements Observer {
 			public void handleMessage(Message msg) {
 				// TODO: handle null pointer excep
 				Log.d("HANDLING MESSAGE", "Handling message");
-//				View listElemToEdit = (View) msg.obj;
-//				ProgressBar progressBar = (ProgressBar) listElemToEdit
-//						.findViewById(R.id.progressBar);
-//				progressBar.setVisibility(View.INVISIBLE);
-//				TextView offlineStatus = (TextView) listElemToEdit
-//						.findViewById(R.id.offlineTextView);
-//				TextView onlineStatus = (TextView) listElemToEdit
-//						.findViewById(R.id.onlineTextView);
-//				ImageView offlineImage = (ImageView) listElemToEdit
-//						.findViewById(R.id.offlineImgView);
-//				ImageView onlineImage = (ImageView) listElemToEdit
-//						.findViewById(R.id.onlineImgView);
-//				if (msg.what == 0) {
-//					offlineImage.setVisibility(View.VISIBLE);
-//					offlineStatus.setVisibility(View.VISIBLE);
-//					onlineImage.setVisibility(View.INVISIBLE);
-//					onlineStatus.setVisibility(View.INVISIBLE);
-//				} else if (msg.what == 1) {
-//					offlineImage.setVisibility(View.INVISIBLE);
-//					offlineStatus.setVisibility(View.INVISIBLE);
-//					onlineImage.setVisibility(View.VISIBLE);
-//					onlineStatus.setVisibility(View.VISIBLE);
-//				}
+				View listElemToEdit = (View) msg.obj;
+				ProgressBar progressBar = (ProgressBar) listElemToEdit
+						.findViewById(R.id.progressBar);
+				progressBar.setVisibility(View.INVISIBLE);
+				TextView offlineStatus = (TextView) listElemToEdit
+						.findViewById(R.id.offlineTextView);
+				TextView onlineStatus = (TextView) listElemToEdit
+						.findViewById(R.id.onlineTextView);
+				ImageView offlineImage = (ImageView) listElemToEdit
+						.findViewById(R.id.offlineImgView);
+				ImageView onlineImage = (ImageView) listElemToEdit
+						.findViewById(R.id.onlineImgView);
+				if (msg.what == 0) {
+					offlineImage.setVisibility(View.VISIBLE);
+					offlineStatus.setVisibility(View.VISIBLE);
+					onlineImage.setVisibility(View.INVISIBLE);
+					onlineStatus.setVisibility(View.INVISIBLE);
+				} else if (msg.what == 1) {
+					offlineImage.setVisibility(View.INVISIBLE);
+					offlineStatus.setVisibility(View.INVISIBLE);
+					onlineImage.setVisibility(View.VISIBLE);
+					onlineStatus.setVisibility(View.VISIBLE);
+				}
 			}
 
 		};
@@ -144,8 +148,9 @@ public class MainActivity extends Activity implements Observer {
 				// TODO: uaktywnij ikony z szarego koloru jesli jeszcze nie sa
 				// aktywne; blad przy ponownym (potrojnym dotknieciu tego samego
 				// itemu)
-				selectedItem = (CustomListItem) parent.getItemAtPosition(position);
-				
+				selectedItem = (CustomListItem) parent
+						.getItemAtPosition(position);
+
 				view.setBackgroundColor(getResources().getColor(
 						R.color.GRASS_GREEN));
 				if (currentlySelected != null)
@@ -155,10 +160,12 @@ public class MainActivity extends Activity implements Observer {
 		});
 
 		surfaceView.setOnTouchListener(new OnTouchListener() {
+			float middleX = 0.0f;
+			float middleY = 0.0f;
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				// TODO: no cos tu jednak nie chodzi...
+
 				switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				case MotionEvent.ACTION_DOWN:
 					startX = event.getX();
@@ -169,29 +176,74 @@ public class MainActivity extends Activity implements Observer {
 					oldDist = calDistBtwFingers(event);
 					if (oldDist > 10f) {
 						androidGesture = PINCH_ZOOM;
+						middleX = (event.getX(0) + event.getX(1)) / 2;
+						middleY = (event.getY(0) + event.getY(1)) / 2;
+						Log.i("----------------",
+								"P(" + Float.toString(middleX) + ","
+										+ Float.toString(middleY) + ")");
 					}
 					break;
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_POINTER_UP:
 					androidGesture = NO_GESTURE;
+					middleX = 0.0f;
+					middleY = 0.0f;
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (androidGesture == DRAG_MOVE) {
-						Log.i("EVENT", "DRAG");
+
 						Log.i("DRAG_MEASUREMENT",
-								"(" + Float.toString(event.getX() - startX)
-										+ ","
-										+ Float.toString(event.getY() - startY)
-										+ ")");
-						renderThread.setX(renderThread.getX() + (event.getX() - startX) * 0.005f);
-						renderThread.setY(renderThread.getY() + (event.getY() - startY) * 0.005f);
+								"P(" + Float.toString(event.getX()) + ","
+										+ Float.toString(event.getY()) + ")");
+						Log.i("DRAG_MEASUREMENT",
+								"Przesuniecie(" + Float.toString(startX) + ","
+										+ Float.toString(startY) + ")");
+						renderThread.setX(renderThread.getX()
+								- (event.getX() - startX) * 0.05f);
+						renderThread.setY(renderThread.getY()
+								- (event.getY() - startY) * 0.05f);
+						startX = event.getX();
+						startY = event.getY();
 					} else if (androidGesture == PINCH_ZOOM) {
-						Log.i("EVENT", "ZOOM");
 						newDist = calDistBtwFingers(event);
 						if (newDist > 10f) {
-							renderThread.setZoom(renderThread.getZoom() * newDist / oldDist);
-							// x = ?
-							// y = ?
+							renderThread.setZoom(renderThread.getZoom()
+									* newDist / oldDist);
+							Log.i("ZOOM_MEASUREMENT",
+									"zoom="
+											+ Float.toString(renderThread
+													.getZoom()));
+							Log.i("ZOOM_MEASUREMENT",
+									"Old scale: P("
+											+ Float.toString(renderThread
+													.getX())
+											+ ","
+											+ Float.toString(renderThread
+													.getY()) + ")");
+							float tmpx = (middleX)
+									/ (renderThread.getZoom() * 10);
+							float tmpy = (middleY)
+									/ (renderThread.getZoom() * 10);
+							tmpx = tmpx * 33.0f / surfaceView.getHeight();
+							tmpy = tmpy * 45.0f / surfaceView.getWidth();
+							Log.i("ZOOM_MEASUREMENT",
+									"Vector: P[" + Float.toString(tmpx) + ","
+											+ Float.toString(tmpy) + "]");
+							if (newDist > oldDist) {
+								renderThread.setX(renderThread.getX() + tmpx);
+								renderThread.setY(renderThread.getY() + tmpy);
+							} else {
+								renderThread.setX(renderThread.getX() - tmpx);
+								renderThread.setY(renderThread.getY() - tmpy);
+							}
+							Log.i("ZOOM_MEASUREMENT",
+									"New scale: P("
+											+ Float.toString(renderThread
+													.getX())
+											+ ","
+											+ Float.toString(renderThread
+													.getY()) + ")");
+							oldDist = newDist;
 						}
 					}
 
@@ -256,20 +308,21 @@ public class MainActivity extends Activity implements Observer {
 
 		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
 		cameraButton.setOnClickListener(new StreamRequestListener(this));
-		
+
 		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
 		sonarButton.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-//				if(getList().getSelectedItemPosition() == AdapterView.INVALID_POSITION)
-//						return;
+				// if(getList().getSelectedItemPosition() ==
+				// AdapterView.INVALID_POSITION)
+				// return;
 
 				// TODO switch to drawing hokuyo info instead of map
-				(new HokuyoSensorTask()).execute(getItems().get(0));//getSelectedItem());			
+				(new HokuyoSensorTask()).execute(getItems().get(0));// getSelectedItem());
 			}
 		});
-		
+
 	}
 
 	private float calDistBtwFingers(MotionEvent event) {
@@ -323,13 +376,14 @@ public class MainActivity extends Activity implements Observer {
 		}
 
 		@Override
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		public void surfaceChanged(SurfaceHolder holder, int format, int width,
+				int height) {
 			Log.i("SurfaceHolder", "wywo³anie surfaceChanged()");
 		}
 	};
 
 	// zarz¹dzanie w¹tkami renderowania i lokalizacji:
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -344,20 +398,20 @@ public class MainActivity extends Activity implements Observer {
 		Log.i("SurfaceHolder", "wywo³anie onResume()");
 
 		locationThread = new LocationThread(this);
-		//locationThread.start();
-		
+		// locationThread.start();
+
 		renderThread = new RenderThread(this);
-		if(surfaceCreated && !renderThread.isAlive())
+		if (surfaceCreated && !renderThread.isAlive())
 			renderThread.start();
 	}
-	
+
 	private void stop(Thread thread) {
 		boolean wait = true;
-		while(wait) {
+		while (wait) {
 			thread.interrupt();
 			try {
 				thread.join();
-			} catch(InterruptedException e) {
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
@@ -382,5 +436,5 @@ public class MainActivity extends Activity implements Observer {
 	public ListView getList() {
 		return list;
 	}
-	
+
 }
