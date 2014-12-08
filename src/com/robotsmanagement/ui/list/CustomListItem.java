@@ -3,6 +3,7 @@ package com.robotsmanagement.ui.list;
 import java.util.Observable;
 
 import pl.edu.agh.amber.common.AmberClient;
+import pl.edu.agh.amber.hokuyo.Scan;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,6 +20,7 @@ public class CustomListItem extends Observable {
 	private ConnectionStatus connectionStatus;
 	private AmberClient client;
 	private Point location;
+	private Scan scan;
 
 	public CustomListItem(String robotName, String ip) {
 		super();
@@ -82,6 +84,14 @@ public class CustomListItem extends Observable {
 		
 		canvas.drawArc(new RectF(newX - DOT_SIZE, newY - DOT_SIZE, 
 				newX + DOT_SIZE, (int) newY + DOT_SIZE), 0, 360, true, paint);
+	}
+
+	public Scan getScan() {
+		return scan;
+	}
+
+	public void setScan(Scan scan) {
+		this.scan = scan;
 	}
 
 }

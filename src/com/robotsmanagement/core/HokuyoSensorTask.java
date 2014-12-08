@@ -21,27 +21,28 @@ public class HokuyoSensorTask extends
 		Log.i("HOKUYO TASK",
 				"Acquiring collision info from " + params[0].getIp());
 		
-		listItem = params[0];
-		client = listItem.getClient();
+		client = params[0].getClient();
 		HokuyoProxy hokuyoProxy = new HokuyoProxy(client, 0);
 		
 		try {
 			// Synchronous receiving
-//			Scan singleScan = hokuyoProxy.getSingleScan();
-//			Log.i("HOKUYO TASK", singleScan.getPoints().toString());
+			Scan singleScan = hokuyoProxy.getSingleScan();
+			Log.i("HOKUYO TASK", singleScan.getPoints().toString());
+			params[0].setScan(singleScan);
+			
 //			Log.i("HOKUYO TASK", "Now registering cyclic data listener...");
 //			Thread.sleep(1000);
 			// Asynchronous receiving (with listener)
-			hokuyoProxy.registerMultiScanListener(new CyclicDataListener<Scan>() {
-				@Override
-				public void handle(Scan data) {
-					try {
-						Log.i("HOKUYO TASK", data.getPoints().toString());
-					} catch (Exception e) {
-						Log.e("HOKUYO TASK", "Exception occurred: " + e);
-					}
-				}
-			});
+//			hokuyoProxy.registerMultiScanListener(new CyclicDataListener<Scan>() {
+//				@Override
+//				public void handle(Scan data) {
+//					try {
+//						Log.i("HOKUYO TASK", data.getPoints().toString());
+//					} catch (Exception e) {
+//						Log.e("HOKUYO TASK", "Exception occurred: " + e);
+//					}
+//				}
+//			});
 		} catch (IOException e) {
 			Log.e("HOKUYO TASK", "Error in sending a command: " + e);
 //		} catch (InterruptedException e) {

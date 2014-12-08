@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements Observer {
 		setContentView(R.layout.activity_main);
 
 		try {
-			JsonMapRenderer.load(getApplicationContext(), "second_floor_rooms");
+			JsonMapRenderer.load(getApplicationContext(), "second_floor_rooms2");
 		} catch (IOException e) {
 			Log.e("MAP LOADER", "Jeb³o w chuj");
 		}

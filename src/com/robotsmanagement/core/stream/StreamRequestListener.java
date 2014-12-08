@@ -31,8 +31,8 @@ import android.view.View.OnClickListener;
 public class StreamRequestListener implements OnClickListener {
 	
 	private final static String tag = StreamRequestListener.class.getName();
-	private final static String login = "lorens";
-	private final static String password = "konik001";
+	private final static String login = "panda";
+	private final static String password = "panda2013";
 
 	private FFmpegFrameGrabber grabber;
 	private MainActivity activity;
@@ -44,21 +44,21 @@ public class StreamRequestListener implements OnClickListener {
 		this.activity = activity;
 		this.sessionNo = 0;
 
-		try {
-			WifiInfo wi = ((WifiManager) activity.getSystemService(Context.WIFI_SERVICE)).getConnectionInfo();
-			byte[] bIp = BigInteger.valueOf(wi.getIpAddress()).toByteArray();
-			byte[] bIp2 = new byte[bIp.length];
-			for(int i = 0; i < bIp.length; i++)
-				bIp2[bIp2.length - 1 - i] = bIp[i];
-			InetAddress ia = InetAddress.getByAddress(bIp2);
-			ip = ia.getHostAddress();
-			grabber = FFmpegFrameGrabber.createDefault(createTempFile(ip));
-			grabber.start();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			WifiInfo wi = ((WifiManager) activity.getSystemService(Context.WIFI_SERVICE)).getConnectionInfo();
+//			byte[] bIp = BigInteger.valueOf(wi.getIpAddress()).toByteArray();
+//			byte[] bIp2 = new byte[bIp.length];
+//			for(int i = 0; i < bIp.length; i++)
+//				bIp2[bIp2.length - 1 - i] = bIp[i];
+//			InetAddress ia = InetAddress.getByAddress(bIp2);
+//			ip = ia.getHostAddress();
+//			grabber = FFmpegFrameGrabber.createDefault(createTempFile(ip));
+//			grabber.start();
+//		} catch (UnknownHostException e) {
+//			e.printStackTrace();
+//		} catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class StreamRequestListener implements OnClickListener {
 		    				"\nInicjowanie po³¹czenia SSH..." +
 		    				"\nnohup ffmpeg -f video4linux2 -i /dev/video0 -pix_fmt yuv420p -r 5 -f rtp rtp://" 
 		    				+ ip + ":1234 &");
-					execSSHCommand(param[0], "nohup ffmpeg -f video4linux2 -i /dev/video0 -pix_fmt yuv420p -r 5 -f rtp rtp://" 
+					execSSHCommand(param[0], "echo " + password + " | sudo -S nohup ffmpeg -f video4linux2 -i /dev/video0 -pix_fmt yuv420p -r 5 -f rtp rtp://" 
 							+ ip + ":1234 < /dev/null > /dev/null 2>&1 &");
 //					execSSHCommand(param[0], "echo " + password + " | sudo -S ffmpeg -f video4linux2 -i /dev/video0 -r 10 -f rtp rtp://" 
 //					+ ip + ":1234"); 
