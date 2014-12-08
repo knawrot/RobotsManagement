@@ -90,27 +90,31 @@ public class MainActivity extends Activity implements Observer {
 				// TODO: handle null pointer excep
 				Log.d("HANDLING MESSAGE", "Handling message");
 				View listElemToEdit = (View) msg.obj;
-				ProgressBar progressBar = (ProgressBar) listElemToEdit
-						.findViewById(R.id.progressBar);
-				progressBar.setVisibility(View.INVISIBLE);
-				TextView offlineStatus = (TextView) listElemToEdit
-						.findViewById(R.id.offlineTextView);
-				TextView onlineStatus = (TextView) listElemToEdit
-						.findViewById(R.id.onlineTextView);
-				ImageView offlineImage = (ImageView) listElemToEdit
-						.findViewById(R.id.offlineImgView);
-				ImageView onlineImage = (ImageView) listElemToEdit
-						.findViewById(R.id.onlineImgView);
-				if (msg.what == 0) {
-					offlineImage.setVisibility(View.VISIBLE);
-					offlineStatus.setVisibility(View.VISIBLE);
-					onlineImage.setVisibility(View.INVISIBLE);
-					onlineStatus.setVisibility(View.INVISIBLE);
-				} else if (msg.what == 1) {
-					offlineImage.setVisibility(View.INVISIBLE);
-					offlineStatus.setVisibility(View.INVISIBLE);
-					onlineImage.setVisibility(View.VISIBLE);
-					onlineStatus.setVisibility(View.VISIBLE);
+				try {
+					ProgressBar progressBar = (ProgressBar) listElemToEdit
+							.findViewById(R.id.progressBar);
+					progressBar.setVisibility(View.INVISIBLE);
+					TextView offlineStatus = (TextView) listElemToEdit
+							.findViewById(R.id.offlineTextView);
+					TextView onlineStatus = (TextView) listElemToEdit
+							.findViewById(R.id.onlineTextView);
+					ImageView offlineImage = (ImageView) listElemToEdit
+							.findViewById(R.id.offlineImgView);
+					ImageView onlineImage = (ImageView) listElemToEdit
+							.findViewById(R.id.onlineImgView);
+					if (msg.what == 0) {
+						offlineImage.setVisibility(View.VISIBLE);
+						offlineStatus.setVisibility(View.VISIBLE);
+						onlineImage.setVisibility(View.INVISIBLE);
+						onlineStatus.setVisibility(View.INVISIBLE);
+					} else if (msg.what == 1) {
+						offlineImage.setVisibility(View.INVISIBLE);
+						offlineStatus.setVisibility(View.INVISIBLE);
+						onlineImage.setVisibility(View.VISIBLE);
+						onlineStatus.setVisibility(View.VISIBLE);
+					}
+				} catch (Exception e) {
+					Log.e("List item initialization", e.getMessage());
 				}
 			}
 
