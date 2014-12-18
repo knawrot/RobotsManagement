@@ -12,22 +12,26 @@ import com.robotsmanagement.ui.list.CustomListItem;
 public class ConnectionEstabilishmentTask extends
 		AsyncTask<CustomListItem, Void, Void> {
 
-	CustomListItem listItem;
+	private CustomListItem listItem;
 
 	@Override
 	protected Void doInBackground(CustomListItem... params) {
 		Log.i("CONNECTION TASK",
 				"Setting up connection for " + params[0].getIp());
 
+		
 		listItem = params[0];
 		try {
+			Thread.sleep(3);
 			listItem.setClient(new AmberClient(params[0].getIp(), 26233));
+			listItem.setConnectionStatus(ConnectionStatus.CONNECTED);
 		} catch (IOException e) {
 			Log.e("CONNECTION TASK", "Unable to connect to robot: " + e);
 			listItem.setConnectionStatus(ConnectionStatus.DISCONNECTED);
+		} catch (InterruptedException e) {
+			Log.e("CONNECTION TASK", "Interrupted " + e);
 		}
 
-		listItem.setConnectionStatus(ConnectionStatus.CONNECTED);
 		return null;
 	}
 

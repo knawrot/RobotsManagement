@@ -31,7 +31,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.robotsmanagement.R;
+import com.robotsmanagement.R;
 import com.robotsmanagement.core.stream.StreamRequestListener;
 import com.robotsmanagement.ui.list.ConnectionStatus;
 import com.robotsmanagement.ui.list.CustomListAdapter;
@@ -67,8 +67,42 @@ public class MainActivity extends Activity implements Observer {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+	    if (!io.vov.vitamio.LibsChecker.checkVitamioLibs(this)) {
+	    	Log.e("Vitamio loader", "Nie udalo sie zaladowac biblioteki streamingu wideo.");
+	        return;
+	    }
+	        
 		setContentView(R.layout.activity_main);
-
+		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(getApplicationContext()));
+		FilesHandler.setContext(getApplicationContext());
+		GoogleMap map = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap))
+		        .getMap();
+	    
+	    if (map != null) {
+	      Marker hamburg = map.addMarker(new MarkerOptions().position(new LatLng(53.558, 9.927))
+	          .title("Hamburg"));
+	    }
+	    else
+	    	Log.e("GOOGLE MAPS", "NULL :c");
+		if (FilesHandler.fileExists(ExceptionHandler.ERRORS_FILE)) {
+//	        Intent intent = new Intent(this, ErrorLoggingActivity.class);
+//	        Log.d("starting activity", "starting new activity");
+//	        startActivity(intent);
+			AlertDialog.Builder errorReportDialog = new AlertDialog.Builder(this);
+			errorReportDialog.setMessage(FilesHandler.readFromFile(ExceptionHandler.ERRORS_FILE));
+			errorReportDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					FilesHandler.deleteFile(ExceptionHandler.ERRORS_FILE);
+					Log.d("FILE", String.valueOf(FilesHandler.fileExists(ExceptionHandler.ERRORS_FILE)));
+				}
+			});
+			errorReportDialog.create().show();
+		} else {
+			// load shared preferences
+		}
+		
 		try {
 			JsonMapRenderer
 					.load(getApplicationContext(), "second_floor_rooms2");
@@ -114,11 +148,15 @@ public class MainActivity extends Activity implements Observer {
 						onlineStatus.setVisibility(View.VISIBLE);
 					}
 				} catch (Exception e) {
-					Log.e("List item initialization", e.getMessage());
+					Log.e("List item initialization", "error: ", e);
 				}
 			}
 
 		};
+		
+//		CustomListItem newItem = new CustomListItem(
+//				"Mock", "196.23.22.11");
+//		items.add(newItem);
 	}
 
 	private void setUpRobotsList() {
@@ -291,10 +329,10 @@ public class MainActivity extends Activity implements Observer {
 											return;
 										CustomListItem newItem = new CustomListItem(
 												name, ip);
-										items.add(newItem);
 										newItem.addObserver(MainActivity.this);
+										items.add(newItem);
 										((BaseAdapter) list.getAdapter())
-												.notifyDataSetChanged();
+										.notifyDataSetChanged();
 										Toast.makeText(MainActivity.this,
 												"Dodano robota",
 												Toast.LENGTH_LONG).show();
@@ -309,21 +347,27 @@ public class MainActivity extends Activity implements Observer {
 
 			}
 		});
+		
+	
 
 		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
 		cameraButton.setOnClickListener(new StreamRequestListener(this));
 
 		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
 		sonarButton.setOnClickListener(new OnClickListener() {
-
+			
 			@Override
 			public void onClick(View v) {
 				// if(getList().getSelectedItemPosition() ==
 				// AdapterView.INVALID_POSITION)
 				// return;
-
-				// TODO switch to drawing hokuyo info instead of map
-				(new HokuyoSensorTask()).execute(getItems().get(0));// getSelectedItem());
+				
+				if(getSelectedItem() != null) {
+					if(!getSelectedItem().isHokuyoRunning())
+						(new HokuyoSensorTask()).execute(getSelectedItem());
+	
+					getSelectedItem().setHokuyoRunning(!getSelectedItem().isHokuyoRunning());
+				}
 			}
 		});
 
@@ -347,17 +391,20 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	public void update(Observable observable, Object data) {
 		CustomListItem item = (CustomListItem) data;
+		View listElemToEdit;
+		/* there are some undefined delays when updating the ListView,
+		 as a reference is not available - the following handles it */
+		while ((listElemToEdit = list.getChildAt(items.indexOf(item))) == null);
+		
 		if (item.isConnected()) {
 			Log.i("CONNECTION RESULT", "Status of connection: "
 					+ ConnectionStatus.CONNECTED.name());
-			View listElemToEdit = list.getChildAt(items.indexOf(item));
 			Message updateMsg = guiUpdatesHandler.obtainMessage(1,
 					listElemToEdit);
 			updateMsg.sendToTarget();
 		} else {
 			Log.i("CONNECTION RESULT", "Status of connection: "
 					+ ConnectionStatus.DISCONNECTED.name());
-			View listElemToEdit = list.getChildAt(items.indexOf(item));
 			Message updateMsg = guiUpdatesHandler.obtainMessage(0,
 					listElemToEdit);
 			updateMsg.sendToTarget();
@@ -390,10 +437,12 @@ public class MainActivity extends Activity implements Observer {
 
 	@Override
 	protected void onPause() {
+		//konieczne, bo inaczej aplikacja sie wypierdziela przy zamknieciu
 		super.onPause();
 		Log.i("SurfaceHolder", "wywo³anie onPause()");
 		stop(renderThread);
 		stop(locationThread);
+		HokuyoSensorTask.closeListeners();
 	}
 
 	@Override
@@ -402,7 +451,7 @@ public class MainActivity extends Activity implements Observer {
 		Log.i("SurfaceHolder", "wywo³anie onResume()");
 
 		locationThread = new LocationThread(this);
-		// locationThread.start();
+		//locationThread.start();
 
 		renderThread = new RenderThread(this);
 		if (surfaceCreated && !renderThread.isAlive())

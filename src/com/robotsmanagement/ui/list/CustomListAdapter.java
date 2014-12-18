@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.example.robotsmanagement.R;
+import com.robotsmanagement.R;
 
 public class CustomListAdapter extends ArrayAdapter<CustomListItem> {
 
