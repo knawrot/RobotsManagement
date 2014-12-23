@@ -10,6 +10,10 @@
     <string name="addRobotIP">IP:</string>
     <string name="addRobotAccept">Dodaj</string>
     <string name="addRobotCancel">Anuluj</string>
+    
+    <string name="manageRobotsReconnect">Spróbuj ponownie</string>
+    <string name="manageRobotsDelete">Usuń</string>
+    <string name="manageRobotsCancel">Anuluj</string>
 
     <!-- images descriptions -->
     <string name="cameraButtonDesc">Streaming live</string>

@@ -1,13 +1,15 @@
 package com.robotsmanagement.core;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+import pl.edu.agh.amber.drivetopoint.Point;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -21,22 +23,32 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.robotsmanagement.R;
 import com.robotsmanagement.core.stream.StreamRequestListener;
 import com.robotsmanagement.ui.list.ConnectionStatus;
 import com.robotsmanagement.ui.list.CustomListAdapter;
 import com.robotsmanagement.ui.list.CustomListItem;
-import com.robotsmanagement.ui.map.JsonMapRenderer;
 
 public class MainActivity extends Activity implements Observer {
 
@@ -44,8 +56,11 @@ public class MainActivity extends Activity implements Observer {
 	private SurfaceHolder surfaceHolder;
 	private RenderThread renderThread;
 	private LocationThread locationThread;
+	private HokuyoThread hokuyoThread;
+	private MediaController mediaController;
 	private ListView list;
 	private CustomListItem selectedItem;
+	private View coloredItem;
 	private final ArrayList<CustomListItem> items = new ArrayList<CustomListItem>();
 	private static final int NO_GESTURE = -1;
 	private static final int PINCH_ZOOM = 0;
@@ -56,38 +71,34 @@ public class MainActivity extends Activity implements Observer {
 	private float oldDist = 0.0f;
 	private float newDist = 0.0f;
 	private boolean surfaceCreated = false;
-
+	private GPSDataRequstTask gpsTask;
 	private Handler guiUpdatesHandler;
+	private ImageButton cameraButton;
+	private ImageButton sonarButton;
+	private ImageButton moreInfoButton;
+	private GoogleMap map;
 
 	public ArrayList<CustomListItem> getItems() {
 		return items;
 	}
 
+	public void setMark(double latitude, double longitude) {
+		Log.i("DODAWANIE MARKA", String.valueOf(latitude) + " " + String.valueOf(longitude));
+		map.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude))
+				.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-	    if (!io.vov.vitamio.LibsChecker.checkVitamioLibs(this)) {
-	    	Log.e("Vitamio loader", "Nie udalo sie zaladowac biblioteki streamingu wideo.");
-	        return;
-	    }
+	        
+		mediaController = new MediaController(this);
+		mediaController.setAnchorView(findViewById(R.id.video_view));
 	        
 		setContentView(R.layout.activity_main);
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(getApplicationContext()));
 		FilesHandler.setContext(getApplicationContext());
-		GoogleMap map = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap))
-		        .getMap();
-	    
-	    if (map != null) {
-	      Marker hamburg = map.addMarker(new MarkerOptions().position(new LatLng(53.558, 9.927))
-	          .title("Hamburg"));
-	    }
-	    else
-	    	Log.e("GOOGLE MAPS", "NULL :c");
 		if (FilesHandler.fileExists(ExceptionHandler.ERRORS_FILE)) {
-//	        Intent intent = new Intent(this, ErrorLoggingActivity.class);
-//	        Log.d("starting activity", "starting new activity");
-//	        startActivity(intent);
 			AlertDialog.Builder errorReportDialog = new AlertDialog.Builder(this);
 			errorReportDialog.setMessage(FilesHandler.readFromFile(ExceptionHandler.ERRORS_FILE));
 			errorReportDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -103,20 +114,20 @@ public class MainActivity extends Activity implements Observer {
 			// load shared preferences
 		}
 		
-		try {
-			JsonMapRenderer
-					.load(getApplicationContext(), "second_floor_rooms2");
-		} catch (IOException e) {
-			Log.e("MAP LOADER", "Jeb³o w chuj");
-		}
-
-		this.surfaceView = (SurfaceView) findViewById(R.id.mapComponent);
-		this.surfaceHolder = this.surfaceView.getHolder();
-		this.surfaceHolder.addCallback(surfaceHolderCallback);
-
+		surfaceView = (SurfaceView) findViewById(R.id.mapComponent);
+		surfaceHolder = surfaceView.getHolder();
+		surfaceHolder.addCallback(surfaceHolderCallback);
+		cameraButton = (ImageButton) findViewById(R.id.cameraButton);
+		cameraButton.setEnabled(false);
+		sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
+		sonarButton.setEnabled(false);
+		moreInfoButton = (ImageButton) findViewById(R.id.stopButton);
+		moreInfoButton.setEnabled(false);
+		
 		setUpRobotsList();
 		setUpListeners();
 
+		gpsTask = new GPSDataRequstTask(MainActivity.this);
 		guiUpdatesHandler = new Handler() {
 
 			@Override
@@ -147,6 +158,13 @@ public class MainActivity extends Activity implements Observer {
 						onlineImage.setVisibility(View.VISIBLE);
 						onlineStatus.setVisibility(View.VISIBLE);
 					}
+					else if (msg.what == 2) {
+						offlineImage.setVisibility(View.INVISIBLE);
+						offlineStatus.setVisibility(View.INVISIBLE);
+						onlineImage.setVisibility(View.INVISIBLE);
+						onlineStatus.setVisibility(View.INVISIBLE);
+						progressBar.setVisibility(View.VISIBLE);
+					}
 				} catch (Exception e) {
 					Log.e("List item initialization", "error: ", e);
 				}
@@ -154,9 +172,45 @@ public class MainActivity extends Activity implements Observer {
 
 		};
 		
-//		CustomListItem newItem = new CustomListItem(
-//				"Mock", "196.23.22.11");
-//		items.add(newItem);
+		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap))
+		        .getMap();
+	    findViewById(R.id.googleMap).setVisibility(View.GONE);
+	    if (map == null) {
+	    	Toast.makeText(MainActivity.this, "Google Maps nie sa dostepne!", Toast.LENGTH_LONG).show();
+	    	Log.e("GOOGLE MAPS", "NULL :c");
+	      
+	    }
+	    else {
+	    	map.setMyLocationEnabled(true);
+	    	Location myLocation = map.getMyLocation();
+	    	LatLng myGeoCoord;
+	    	if (myLocation == null) {
+	    		myGeoCoord = new LatLng(50.068127,19.912709);
+	    		Toast.makeText(MainActivity.this, "Nie mozna ustalic polozenia urzadzenia, centruje na D17.", Toast.LENGTH_LONG).show();
+	    	}
+	    	else {
+	    		myGeoCoord = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+	    	}
+	    	CameraPosition myPostionOnMap = new CameraPosition.Builder().
+	    			target(myGeoCoord).
+	    			zoom(15).
+	    			build();
+	    	map.animateCamera(CameraUpdateFactory.newCameraPosition(myPostionOnMap));
+	    	map.setOnMapClickListener(new OnMapClickListener() {
+				
+				@Override
+				public void onMapClick(LatLng arg0) {
+					if (selectedItem != null)
+						map.addMarker(new MarkerOptions().position(arg0)
+							.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+				}
+			});
+	    	// wzwolac jakis task ktorz bd mial updatowana liste Markow i bedzie je usuwal i dodawal
+	    	// LUB
+	    	// listenerLocation i kazdego tak udpateowac
+	    }
+	    
+	
 	}
 
 	private void setUpRobotsList() {
@@ -181,6 +235,27 @@ public class MainActivity extends Activity implements Observer {
 			}
 		});
 
+//		Switch mapSwitch = (Switch) findViewById(R.id.mapSwitch);
+//		mapSwitch.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+//			
+//			@Override
+//			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//				FrameLayout layout = (FrameLayout) MainActivity.this.findViewById(R.id.mapContainer);
+//				Log.i("CHILD COUNT", String.valueOf(layout.getChildCount()));
+//				while (layout.getChildAt(0) == null || layout.getChildAt(1) == null || layout.getChildAt(2) == null);
+//				if (isChecked) {
+//					layout.getChildAt(1).bringToFront();
+//					layout.getChildAt(1).setVisibility(View.VISIBLE);
+//					layout.getChildAt(0).setVisibility(View.INVISIBLE);
+//				} else {
+//					layout.getChildAt(0).bringToFront();
+//					layout.getChildAt(0).setVisibility(View.VISIBLE);
+//					layout.getChildAt(1).setVisibility(View.GONE);
+//				}
+//				layout.getChildAt(2).bringToFront();
+//			}
+//		});
+		
 		list.setOnItemClickListener(new OnItemClickListener() {
 			View currentlySelected = null;
 
@@ -190,20 +265,87 @@ public class MainActivity extends Activity implements Observer {
 				// TODO: uaktywnij ikony z szarego koloru jesli jeszcze nie sa
 				// aktywne; blad przy ponownym (potrojnym dotknieciu tego samego
 				// itemu)
-				selectedItem = (CustomListItem) parent
-						.getItemAtPosition(position);
 
 				view.setBackgroundColor(getResources().getColor(
 						R.color.GRASS_GREEN));
 				if (currentlySelected != null)
 					currentlySelected.setBackgroundColor(0);
+				if (currentlySelected == view) {
+					selectedItem = null;
+					cameraButton.setEnabled(false);
+					sonarButton.setEnabled(false);
+					moreInfoButton.setEnabled(false);
+				}
+				else {
+					selectedItem = (CustomListItem) parent.getItemAtPosition(position);
+					cameraButton.setEnabled(true);
+					sonarButton.setEnabled(true);
+					moreInfoButton.setEnabled(true);
+				}
+					
 				currentlySelected = view;
+			}
+		});
+		
+		list.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				selectedItem = (CustomListItem) parent.getItemAtPosition(position);
+
+				view.setBackgroundColor(getResources().getColor(
+						R.color.GRASS_GREEN));
+				
+				if(coloredItem != null && coloredItem != view)
+					coloredItem.setBackgroundColor(0);
+				
+				coloredItem = view;
+				
+				LayoutInflater layInf = LayoutInflater.from(MainActivity.this);
+				final View dialogView = layInf.inflate(
+						R.layout.manage_robots_dialog, null);
+				
+				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(
+						MainActivity.this);
+				dialogBuilder.setView(dialogView);
+				dialogBuilder
+						.setTitle(selectedItem.getRobotName())
+						.setPositiveButton(R.string.manageRobotsReconnect,
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int id) {
+										selectedItem.setConnectionStatus(ConnectionStatus.CONNECTING);
+									}
+								})
+						.setNeutralButton(R.string.manageRobotsDelete, 
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int id) {
+										items.remove(selectedItem);
+										((BaseAdapter) list.getAdapter()).notifyDataSetChanged();
+										(new Thread() {
+											@Override
+											public void run() {
+												selectedItem.getClient().terminate();
+											}
+										}).start();
+									}
+								})
+						.setNegativeButton(R.string.manageRobotsCancel, null);
+
+				AlertDialog addDialog = dialogBuilder.create();
+				addDialog.show();
+				return false;
 			}
 		});
 
 		surfaceView.setOnTouchListener(new OnTouchListener() {
 			float middleX = 0.0f;
 			float middleY = 0.0f;
+			private long clickTimer;
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -213,6 +355,7 @@ public class MainActivity extends Activity implements Observer {
 					startX = event.getX();
 					startY = event.getY();
 					androidGesture = DRAG_MOVE;
+					clickTimer = System.currentTimeMillis();
 					break;
 				case MotionEvent.ACTION_POINTER_DOWN:
 					oldDist = calDistBtwFingers(event);
@@ -226,14 +369,20 @@ public class MainActivity extends Activity implements Observer {
 					}
 					break;
 				case MotionEvent.ACTION_UP:
+					if(System.currentTimeMillis() - clickTimer < 200) {
+						Log.i("ON_CLICK", "Wspolrzedna X: " + event.getX()
+								+ ", Y: " + event.getY());
+						moveRobot(event.getX(), event.getY());
+					}
+					break;
 				case MotionEvent.ACTION_POINTER_UP:
 					androidGesture = NO_GESTURE;
 					middleX = 0.0f;
 					middleY = 0.0f;
 					break;
 				case MotionEvent.ACTION_MOVE:
-					if (androidGesture == DRAG_MOVE) {
-
+					if (androidGesture == DRAG_MOVE &&
+							System.currentTimeMillis() - clickTimer >= 200) {
 						Log.i("DRAG_MEASUREMENT",
 								"P(" + Float.toString(event.getX()) + ","
 										+ Float.toString(event.getY()) + ")");
@@ -338,6 +487,7 @@ public class MainActivity extends Activity implements Observer {
 												Toast.LENGTH_LONG).show();
 										new ConnectionEstabilishmentTask()
 												.execute(newItem);
+										new GPSDataRequstTask(MainActivity.this).execute(ip);
 									}
 								})
 						.setNegativeButton(R.string.addRobotCancel, null);
@@ -347,14 +497,22 @@ public class MainActivity extends Activity implements Observer {
 
 			}
 		});
-		
-	
 
 		ImageButton cameraButton = (ImageButton) findViewById(R.id.cameraButton);
 		cameraButton.setOnClickListener(new StreamRequestListener(this));
 
 		ImageButton sonarButton = (ImageButton) findViewById(R.id.colliDrawButton);
 		sonarButton.setOnClickListener(new OnClickListener() {
+			
+			
+			@Override
+			public void onClick(View v) {
+				getSelectedItem().setHokuyoRunning(!getSelectedItem().isHokuyoRunning());
+			}
+		});
+		
+		ImageButton stopButton = (ImageButton) findViewById(R.id.stopButton);
+		stopButton.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -368,6 +526,63 @@ public class MainActivity extends Activity implements Observer {
 	
 					getSelectedItem().setHokuyoRunning(!getSelectedItem().isHokuyoRunning());
 				}
+//				(new DriveToPointTask()).execute(getSelectedItem());
+				(new RoboclawTask(getSelectedItem())).execute(100, 100, 100, 100);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(0, 0, 0, 0);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(100, -100, 100, -100);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(0, 0, 0, 0);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(-100, 100, -100, 100);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(0, 0, 0, 0);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(-100, -100, -100, -100);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				(new RoboclawTask(getSelectedItem())).execute(0, 0, 0, 0);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -379,15 +594,6 @@ public class MainActivity extends Activity implements Observer {
 		return (float) Math.sqrt(x * x + y * y);
 	}
 
-	public void moveRobot(float x, float y) {
-		translateToMapCords(x, y);
-		// TODO: dalsze gunwo
-	}
-
-	private void translateToMapCords(float x, float y) {
-		// TODO: gunwo, jakas skala musi byc zdefiniowana or so
-	}
-
 	@Override
 	public void update(Observable observable, Object data) {
 		CustomListItem item = (CustomListItem) data;
@@ -396,10 +602,16 @@ public class MainActivity extends Activity implements Observer {
 		 as a reference is not available - the following handles it */
 		while ((listElemToEdit = list.getChildAt(items.indexOf(item))) == null);
 		
-		if (item.isConnected()) {
+		if (item.getConnectionStatus() == ConnectionStatus.CONNECTED) {
 			Log.i("CONNECTION RESULT", "Status of connection: "
 					+ ConnectionStatus.CONNECTED.name());
 			Message updateMsg = guiUpdatesHandler.obtainMessage(1,
+					listElemToEdit);
+			updateMsg.sendToTarget();
+		} else if(item.getConnectionStatus() == ConnectionStatus.CONNECTING) {
+			Log.i("CONNECTION RESULT", "Status of connection: "
+					+ ConnectionStatus.CONNECTING.name());
+			Message updateMsg = guiUpdatesHandler.obtainMessage(2,
 					listElemToEdit);
 			updateMsg.sendToTarget();
 		} else {
@@ -422,6 +634,7 @@ public class MainActivity extends Activity implements Observer {
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
 			Log.i("SurfaceHolder", "wywo³anie surfaceCreated()");
+			renderThread.setDefaultZoom();
 			renderThread.start();
 			surfaceCreated = true;
 		}
@@ -432,7 +645,49 @@ public class MainActivity extends Activity implements Observer {
 			Log.i("SurfaceHolder", "wywo³anie surfaceChanged()");
 		}
 	};
+	
+	//////////////////////////////
+	// Odbieranie strumienia wideo 
 
+	public void playVideo(final String videoUrl) {
+		// Get the URL from String VideoURL
+		final VideoView videoView = (VideoView) findViewById(R.id.video_view);
+		Uri video = Uri.parse(String.format(videoUrl, getSelectedItem().getIp()));
+		videoView.setMediaController(mediaController);
+		videoView.setVideoURI(video);
+		videoView.requestFocus();
+		videoView.start();
+	}
+	
+	public void stopVideo() {
+		VideoView videoView = (VideoView) findViewById(R.id.video_view);
+		videoView.stopPlayback();
+		videoView.setVideoURI(null);
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////
+	// Sterowanie ruchem robota i translacja wspolrzednych dotyku na wspolrzedne mapy
+
+	public void moveRobot(float x, float y) {
+		if(getSelectedItem() == null)
+			return;
+
+		Log.i("MOVE_ROBOT", "Wysyanie rozkazu przemieszczenie sie do robota");
+		// DriveToPoint pobiera wspolrzedne w milimetrach
+		Point coords = translateToMapCords(x, y);
+		Point coordsInMiliMs = new Point(coords.x * 1000, coords.y * 1000, 0);
+		getSelectedItem().setDestination(coords);
+		(new DriveToPointTask(coordsInMiliMs)).execute(getSelectedItem());
+	}
+
+	private Point translateToMapCords(float x, float y) {
+		float newX = x / renderThread.getZoom() + renderThread.getX();
+		float newY = y / renderThread.getZoom() + renderThread.getY();
+		Log.d("TRANSLATE_TO_MAP_COORDS", newX + " " + newY);
+		return new Point(newX, newY, 0);
+	}
+	
+	//////////////////////////////////////////////////
 	// zarz¹dzanie w¹tkami renderowania i lokalizacji:
 
 	@Override
@@ -442,32 +697,35 @@ public class MainActivity extends Activity implements Observer {
 		Log.i("SurfaceHolder", "wywo³anie onPause()");
 		stop(renderThread);
 		stop(locationThread);
-		HokuyoSensorTask.closeListeners();
+		stop(hokuyoThread);
 	}
 
+	@Override
+	protected void onStop() {
+		super.onStop();
+		stop(locationThread);
+		stop(hokuyoThread);
+	}
+	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		Log.i("SurfaceHolder", "wywo³anie onResume()");
 
 		locationThread = new LocationThread(this);
-		//locationThread.start();
+		locationThread.start();
+
+		hokuyoThread = new HokuyoThread(this);
+		hokuyoThread.start();
 
 		renderThread = new RenderThread(this);
 		if (surfaceCreated && !renderThread.isAlive())
 			renderThread.start();
 	}
-
-	private void stop(Thread thread) {
-		boolean wait = true;
-		while (wait) {
-			thread.interrupt();
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+	
+	public void stop(Thread thread) {
+		if(thread != null && thread.isAlive())
+			(new StopperThread(thread)).start();
 	}
 
 	public CustomListItem getSelectedItem() {
@@ -482,6 +740,10 @@ public class MainActivity extends Activity implements Observer {
 		return locationThread;
 	}
 
+	public HokuyoThread getHokuyoThread() {
+		return hokuyoThread;
+	}
+
 	public SurfaceHolder getSurfaceHolder() {
 		return surfaceHolder;
 	}
@@ -490,4 +752,7 @@ public class MainActivity extends Activity implements Observer {
 		return list;
 	}
 
+	public MediaController getMediaCtrl() {
+		return mediaController;
+	}
 }

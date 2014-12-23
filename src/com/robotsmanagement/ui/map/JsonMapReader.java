@@ -46,6 +46,15 @@ public class JsonMapReader {
 				}
 				reader.endArray();
 				mapEnitities.put("gates", gates);
+			} else if(name.equals("nodes")) {
+				List<JsonEntityNode> nodes = new ArrayList<JsonEntityNode>();
+				
+				reader.beginArray();
+				while(reader.hasNext()) {
+					nodes.add(readNode(reader));
+				}
+				reader.endArray();
+				mapEnitities.put("nodes", nodes);
 			} else {
 				reader.skipValue();
 			}
@@ -117,6 +126,31 @@ public class JsonMapReader {
 		}
 		reader.endObject();
 		return new JsonEntityWall(id, type, color, width, height, from, to);
+	}
+
+	public static JsonEntityNode readNode(JsonReader reader) throws IOException {
+		String id = null;
+		String type = null;
+		String kind = null;
+		PointF position = null;
+		
+		reader.beginObject();
+		while(reader.hasNext()) {
+			String name = reader.nextName();
+			if(name.equals("type")) {
+				type = reader.nextString();
+			} else if(name.equals("id")) {
+				id = reader.nextString();
+			} else if(name.equals("kind")) {
+				kind = reader.nextString();
+			} else if(name.equals("position") && reader.peek() != JsonToken.NULL) {
+				position = readDoublesXY(reader);
+			} else {
+				reader.skipValue();
+			}
+		}
+		reader.endObject();
+		return new JsonEntityNode(id, type, kind, position);
 	}
 
 	public static PointF readDoublesXY(JsonReader reader) throws IOException {

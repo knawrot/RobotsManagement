@@ -12,11 +12,20 @@
         android:layout_weight="1"
         android:background="@color/BACKGROUND_COLOR" >
             
+        <VideoView
+	        android:id="@+id/video_view"
+	        android:layout_width="match_parent"
+	        android:layout_height="240dp"
+	        android:layout_alignParentTop="true"
+	        android:minHeight="320dp"
+	        android:minWidth="240dp"
+	        android:visibility="gone" />
+        
         <RelativeLayout
             android:id="@+id/listTitleContainer"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            android:layout_alignParentTop="true"
+            android:layout_below="@id/video_view"
             android:padding="0dp" >
             
             <TextView
@@ -58,7 +67,7 @@
         
         <ListView
             android:id="@+id/robotsList"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/buttonsContainer"
             android:layout_below="@id/listTitleContainer"
@@ -73,62 +82,81 @@
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/robotsList"
             android:background="@color/BORDERS_COLOR" />
-        
-        <RelativeLayout
-            android:id="@id/buttonsContainer" 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" 
-            android:layout_centerHorizontal="true" 
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp" >
-            
-            <ImageButton
-                android:id="@+id/cameraButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:contentDescription="@string/cameraButtonDesc"
-                android:layout_marginLeft="3dp"
-                android:layout_marginRight="3dp"
-                android:padding="5dp"
-                android:src="@drawable/camera" />
-            
-            <ImageButton
-                android:id="@+id/moreInfoButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-				android:background="?android:attr/selectableItemBackground"
-                android:layout_toRightOf="@id/cameraButton"
-                android:contentDescription="@string/moreInfoButtonDesc"
-				android:layout_marginLeft="3dp"
-                android:layout_marginRight="3dp"
-				android:padding="5dp"
-                android:src="@drawable/info" />
-            
-            <ImageButton
-                android:id="@+id/colliDrawButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-				android:background="?android:attr/selectableItemBackground"
-                android:layout_toRightOf="@id/moreInfoButton"
-				android:layout_marginLeft="3dp"
-                android:layout_marginRight="3dp"
-				android:padding="5dp"
-                android:contentDescription="@string/colliDrawButtonDesc"
-				
-                android:src="@drawable/collision" />
-            
-        </RelativeLayout>
+
+	    <RelativeLayout
+	        android:id="@id/buttonsContainer"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:layout_centerHorizontal="true"
+	        android:layout_margin="10dp" >
+
+	        <ImageButton
+	            android:id="@+id/cameraButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="3dp"
+	            android:layout_marginRight="3dp"
+	            android:background="@drawable/camerabutton_selector"
+	            android:contentDescription="@string/cameraButtonDesc"
+	            android:padding="5dp" />
+
+	        <ImageButton
+	            android:id="@+id/stopButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="3dp"
+	            android:layout_marginRight="3dp"
+	            android:layout_toRightOf="@id/cameraButton"
+	            android:background="@drawable/infobutton_selector"
+	            android:contentDescription="@string/moreInfoButtonDesc"
+	            android:padding="5dp" />
+
+	        <ImageButton
+	            android:id="@+id/colliDrawButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="3dp"
+	            android:layout_marginRight="3dp"
+	            android:layout_toRightOf="@id/stopButton"
+	            android:background="@drawable/collisionbutton_selector"
+	            android:contentDescription="@string/colliDrawButtonDesc"
+	            android:padding="5dp" />
+	    </RelativeLayout>
         
     </RelativeLayout>
     
-    <SurfaceView
-	    android:id="@+id/mapComponent"
-	    android:layout_width="0dp"
-        android:layout_height="fill_parent"
-        android:layout_weight="3"
-        android:contentDescription="@string/mapComponentDesc" 
-        android:scaleType="fitXY"/>
+    <FrameLayout 
+          android:id="@+id/mapContainer"
+          android:layout_width="0dp"
+          android:layout_height="fill_parent"
+          android:layout_weight="3" >
+	    
+        
+        <SurfaceView
+	  	  	android:id="@+id/mapComponent"
+	    	android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+        	android:contentDescription="@string/mapComponentDesc" 
+        	android:scaleType="fitXY"/>
+        
+        <fragment
+        	android:id="@+id/googleMap"
+          	android:layout_width="fill_parent"
+          	android:layout_height="fill_parent"
+          	class="com.google.android.gms.maps.MapFragment"/>
+        
+        <Switch    	    
+    	    android:id="@+id/mapSwitch"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_marginTop="10dp"
+    	    android:layout_marginLeft="10dp"
+    	    android:textOff="D17"
+            android:textOn="GoogleMaps" />
+
+        
+    </FrameLayout>
+    
         
 </LinearLayout>

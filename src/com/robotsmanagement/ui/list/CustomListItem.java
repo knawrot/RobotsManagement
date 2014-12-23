@@ -1,36 +1,104 @@
 package com.robotsmanagement.ui.list;
 
-import java.io.IOException;
 import java.util.Observable;
 
 import pl.edu.agh.amber.common.AmberClient;
+import pl.edu.agh.amber.drivetopoint.DriveToPointProxy;
+import pl.edu.agh.amber.drivetopoint.Point;
 import pl.edu.agh.amber.hokuyo.HokuyoProxy;
 import pl.edu.agh.amber.hokuyo.MapPoint;
 import pl.edu.agh.amber.hokuyo.Scan;
+import pl.edu.agh.amber.location.LocationProxy;
+import pl.edu.agh.amber.roboclaw.RoboclawProxy;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.robotsmanagement.ui.map.JsonMapRenderer;
+
 public class CustomListItem extends Observable {
-	
 	private final static int DOT_SIZE = 5;
-	
 	private String robotName;
 	private String ip;
 	private ConnectionStatus connectionStatus;
 	private AmberClient client;
 	private Point location;
+	private Point destination;
+	private LatLng gMapsLocation;
 	private Scan scan;
-	private HokuyoProxy hokuyoProxy;
 	private boolean hokuyoRunning;
+	private HokuyoProxy hokuyoProxy;
+	private DriveToPointProxy dtpProxy;
+	private LocationProxy locationProxy;
+	private RoboclawProxy roboclawProxy;
+	private double angle;
 
 	public CustomListItem(String robotName, String ip) {
 		super();
 		this.robotName = robotName;
 		this.ip = ip;
 		connectionStatus = ConnectionStatus.CONNECTING;
+		hokuyoRunning = false;
+	}
+	
+	public void draw(Canvas canvas, float x, float y, float zoom) {
+		Paint paint = new Paint();
+		paint.setColor(Color.LTGRAY);
+		
+		if(location == null)
+			return;
+		
+		float newX = (float) ((location.x - x) * zoom);
+		float newY = (float) ((location.y - y) * zoom);
+		
+		canvas.drawArc(new RectF(newX - DOT_SIZE, newY - DOT_SIZE, 
+				newX + DOT_SIZE, newY + DOT_SIZE), 0, 360, true, paint);
+	}
+
+	public void draw(Canvas canvas, float x, float y, float zoom, Paint paint, boolean refresh) {		
+		//if(location == null)
+		//	return;
+		location = new Point(2,2,0);
+		
+		float newX = (float) ((location.x - x) * zoom);
+		float newY = (float) ((location.y - y) * zoom);
+		
+		canvas.drawArc(new RectF(newX - DOT_SIZE, newY - DOT_SIZE, 
+				newX + DOT_SIZE, newY + DOT_SIZE), 0, 360, true, paint);
+
+		if(destination != null) {
+			float destX = (float) ((destination.x - x) * zoom);
+			float destY = (float) ((destination.y - y) * zoom);
+			
+			JsonMapRenderer.drawPath(canvas, x, y, zoom, location, destination, refresh);
+	
+			canvas.drawLine(destX - DOT_SIZE, destY - DOT_SIZE, destX + DOT_SIZE, destY + DOT_SIZE, paint);
+			canvas.drawLine(destX - DOT_SIZE, destY + DOT_SIZE, destX + DOT_SIZE, destY - DOT_SIZE, paint);
+		}
+		
+		try {
+			if(scan == null)
+				return;
+			if(hokuyoRunning == false)
+				return;
+			
+			Paint scannerPaint = new Paint();
+			scannerPaint.setColor(Color.RED);
+			
+			for(MapPoint point : scan.getPoints()) {
+				float x1 = (float) (newX + point.getDistance() * zoom
+						* Math.cos(Math.toRadians(point.getAngle()) + angle) / 1000);
+				float y1 = (float) (newY + point.getDistance() * zoom
+						* Math.sin(Math.toRadians(point.getAngle()) + angle) / 1000);
+
+				canvas.drawPoint(x1, y1, scannerPaint);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public AmberClient getClient() {
@@ -47,6 +115,17 @@ public class CustomListItem extends Observable {
 
 	public void setLocation(Point location) {
 		this.location = location;
+	}
+
+	public LatLng getgMapsLocation() {
+		return gMapsLocation;
+	}
+
+	public void setgMapsLocation(LatLng gMapsLocation) {
+		this.gMapsLocation = gMapsLocation;
+		Log.d("ITEM UPDATE", "Set up gMapsLocation:  " + gMapsLocation);
+		setChanged();
+		notifyObservers(this);
 	}
 
 	public String getRobotName() {
@@ -76,36 +155,8 @@ public class CustomListItem extends Observable {
 		notifyObservers(this);
 	}
 	
-	public void draw(Canvas canvas, float x, float y, float zoom) {
-		Paint paint = new Paint();
-		paint.setColor(Color.LTGRAY);
-		
-		if(location == null)
-			return;
-
-		int newX = (int) ((location.getX() - x) * zoom);
-		int newY = (int) ((location.getY() - y) * zoom);
-		
-		canvas.drawArc(new RectF(newX - DOT_SIZE, newY - DOT_SIZE, 
-				newX + DOT_SIZE, newY + DOT_SIZE), 0, 360, true, paint);
-		
-		try {
-			if(hokuyoRunning) {
-				Paint scannerPaint = new Paint();
-				scannerPaint.setColor(Color.RED);
-				
-				for(MapPoint point : scan.getPoints()) {
-					float x1 = (float) (newX + point.getDistance() * Math.cos(point.getAngle()));
-					float y1 = (float) (newY + point.getDistance() * Math.sin(point.getAngle()));
-					
-					//TODO nie wiem czy te +1 sa potrzebne
-					canvas.drawArc(new RectF(x1, y1, x1 + 1, y1 + 1), 0, 360, true, scannerPaint);
-				}
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public ConnectionStatus getConnectionStatus() {
+		return connectionStatus;
 	}
 
 	public Scan getScan() {
@@ -116,33 +167,56 @@ public class CustomListItem extends Observable {
 		this.scan = scan;
 	}
 
-	public boolean isHokuyoRunning() {
-		return hokuyoRunning;
-	}
-
-	public void setHokuyoRunning(boolean hokuyoRunning) {
-		if(hokuyoRunning == false) {
-			scan = null;
-			
-			if(hokuyoProxy != null) {
-				try {
-					hokuyoProxy.unsubscribe();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		this.hokuyoRunning = hokuyoRunning;
-	}
-
 	public HokuyoProxy getHokuyoProxy() {
 		return hokuyoProxy;
 	}
 
 	public void setHokuyoProxy(HokuyoProxy hokuyoProxy) {
 		this.hokuyoProxy = hokuyoProxy;
+	}
+
+	public DriveToPointProxy getDtpProxy() {
+		return dtpProxy;
+	}
+
+	public void setDtpProxy(DriveToPointProxy dtpProxy) {
+		this.dtpProxy = dtpProxy;
+	}
+
+	public LocationProxy getLocationProxy() {
+		return locationProxy;
+	}
+
+	public void setLocationProxy(LocationProxy locationProxy) {
+		this.locationProxy = locationProxy;
+	}
+
+	public void setDestination(Point destination) {
+		this.destination = destination;
+	}
+
+	public boolean isHokuyoRunning() {
+		return hokuyoRunning;
+	}
+
+	public void setHokuyoRunning(boolean hokuyoRunning) {
+		this.hokuyoRunning = hokuyoRunning;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+
+	public double getAngle() {
+		return angle;
+	}
+
+	public RoboclawProxy getRoboclawProxy() {
+		return roboclawProxy;
+	}
+
+	public void setRoboclawProxy(RoboclawProxy roboclawProxy) {
+		this.roboclawProxy = roboclawProxy;
 	}
 
 }
