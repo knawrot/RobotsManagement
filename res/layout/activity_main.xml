@@ -102,26 +102,27 @@
 	            android:padding="5dp" />
 
 	        <ImageButton
-	            android:id="@+id/stopButton"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:layout_marginLeft="3dp"
-	            android:layout_marginRight="3dp"
-	            android:layout_toRightOf="@id/cameraButton"
-	            android:background="@drawable/infobutton_selector"
-	            android:contentDescription="@string/moreInfoButtonDesc"
-	            android:padding="5dp" />
-
-	        <ImageButton
 	            android:id="@+id/colliDrawButton"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:layout_marginLeft="3dp"
 	            android:layout_marginRight="3dp"
-	            android:layout_toRightOf="@id/stopButton"
+	            android:layout_toRightOf="@id/cameraButton"
 	            android:background="@drawable/collisionbutton_selector"
 	            android:contentDescription="@string/colliDrawButtonDesc"
 	            android:padding="5dp" />
+	        
+	        <ImageButton
+	            android:id="@+id/stopButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="3dp"
+	            android:layout_marginRight="3dp"
+	            android:layout_toRightOf="@id/colliDrawButton"
+	            android:background="@drawable/infobutton_selector"
+	            android:contentDescription="@string/moreInfoButtonDesc"
+	            android:padding="5dp" />
+	        
 	    </RelativeLayout>
         
     </RelativeLayout>
@@ -146,15 +147,70 @@
           	android:layout_height="fill_parent"
           	class="com.google.android.gms.maps.MapFragment"/>
         
-        <Switch    	    
-    	    android:id="@+id/mapSwitch"
-    	    android:layout_width="wrap_content"
-    	    android:layout_height="wrap_content"
-    	    android:layout_marginTop="10dp"
-    	    android:layout_marginLeft="10dp"
-    	    android:textOff="D17"
+        <Switch
+            android:id="@+id/mapSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/switch_bg_selector"
+            android:textOff="D17"
             android:textOn="GoogleMaps" />
+        
+        <RelativeLayout
+            android:id="@+id/arrowButtonsContainer"
+            android:layout_width="185dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="bottom"
+            android:layout_margin="10dp" >
 
+	        <ImageButton
+	            android:id="@+id/leftButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginRight="10dp"
+	            android:layout_toLeftOf="@+id/downButton"
+	            android:layout_below="@+id/upButton"
+	            android:background="@drawable/arrow_left_selector"
+	            android:contentDescription="@string/moreInfoButtonDesc"
+	            android:padding="5dp" />
+	        
+	        <ImageButton
+	            android:id="@+id/rightButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+				android:layout_marginLeft="10dp"
+	            android:layout_toRightOf="@id/downButton"
+	            android:layout_below="@id/upButton"
+	            android:background="@drawable/arrow_right_selector"
+	            android:contentDescription="@string/colliDrawButtonDesc"
+	            android:padding="5dp" />
+
+	        <ImageButton
+	            android:id="@id/downButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_below="@+id/upButton"
+	            android:layout_centerHorizontal="true"
+	            android:layout_marginLeft="5dp"
+	            android:layout_marginRight="5dp"
+	            android:background="@drawable/arrow_down_selector"
+	            android:contentDescription="@string/colliDrawButtonDesc"
+	            android:padding="5dp" />
+
+	        <ImageButton
+	            android:id="@id/upButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_alignParentTop="true"
+	            android:layout_centerHorizontal="true"
+	            android:layout_marginBottom="15dp"
+	            android:background="@drawable/arrow_up_selector"
+	            android:contentDescription="@string/cameraButtonDesc"
+	            android:padding="5dp" />
+	        
+	    </RelativeLayout>
         
     </FrameLayout>
     

@@ -3,57 +3,64 @@
     android:id="@+id/layout_root"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="10dp" >
 
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="124dp"
+        android:layout_height="124dp"
+        android:src="@drawable/robot" />
+
     <LinearLayout
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/nameTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:padding="10dp"
-            android:text="@string/addRobotName"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <EditText
-            android:id="@+id/nameEditText"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:text="robot" >
-
-            <requestFocus />
-        </EditText>
-    </LinearLayout>
-    
-    <LinearLayout
-        android:layout_width="300dp"
-    	android:layout_height="wrap_content"
-    	android:orientation="horizontal" >
+        android:orientation="vertical" >
         
-        <TextView
-        android:id="@+id/ipTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/addRobotIP"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:padding="10dp" />
- 
-    	<EditText
-        android:id="@+id/ipEditText"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:inputType="text"
-        android:text="192.168.2.203" />
+    	<LinearLayout
+        	android:layout_width="300dp"
+	        android:layout_height="wrap_content"
+        	android:orientation="horizontal" >
 
+	        <TextView
+            	android:id="@+id/nameTextView"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:layout_gravity="right"
+            	android:padding="10dp"
+            	android:text="@string/addRobotName"
+            	android:textAppearance="?android:attr/textAppearanceLarge" />
+	
+        	<EditText
+	            android:id="@+id/nameEditText"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:ems="10"
+            	android:inputType="text" />
+    	</LinearLayout>
     
+    	<LinearLayout
+	        android:layout_width="300dp"
+    		android:layout_height="wrap_content"
+    		android:orientation="horizontal" >
+	        
+        	<TextView
+        		android:id="@+id/ipTextView"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		android:text="@string/addRobotIP"
+    	    	android:textAppearance="?android:attr/textAppearanceLarge"
+	        	android:padding="10dp" />
+	
+        	<EditText
+	            android:id="@+id/ipEditText"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:ems="10"
+            	android:inputType="text" />
+	    
+	    </LinearLayout>
+	    
     </LinearLayout>
-    
  
 </LinearLayout>

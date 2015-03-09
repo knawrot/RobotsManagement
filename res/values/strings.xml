@@ -11,9 +11,6 @@
     <string name="addRobotAccept">Dodaj</string>
     <string name="addRobotCancel">Anuluj</string>
     
-    <string name="manageRobotsReconnect">Spróbuj ponownie</string>
-    <string name="manageRobotsDelete">Usuń</string>
-    <string name="manageRobotsCancel">Anuluj</string>
 
     <!-- images descriptions -->
     <string name="cameraButtonDesc">Streaming live</string>
@@ -28,6 +25,11 @@
     
     <string name="anonymousRobotName">Anonim</string>
     <string name="anonymousRobotIp">192.168.1.1</string>
+    
+    <string name="manageRobotsText">Wybierz operację, jaką chcesz wykonać:</string>
+    <string name="manageRobotsReconnect">Połącz ponownie</string>
+    <string name="manageRobotsDelete">Usuń</string>
+    <string name="manageRobotsCancel">Anuluj</string>
     
 
 </resources>

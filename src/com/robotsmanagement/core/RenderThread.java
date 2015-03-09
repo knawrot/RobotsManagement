@@ -9,18 +9,15 @@ import android.graphics.PorterDuff;
 import android.util.Log;
 
 import com.robotsmanagement.R;
-import com.robotsmanagement.ui.list.CustomListItem;
-import com.robotsmanagement.ui.map.JsonMapRenderer;
+import com.robotsmanagement.core.map.JsonMapRenderer;
+import com.robotsmanagement.model.list.CustomListItem;
 
 public class RenderThread extends Thread {
-
-	private static final String tag = RenderThread.class.getName();
+	private static final String CLASS_TAG = RenderThread.class.getName();
 	private static final String map = "mapa_laboratorium";
-	
 	private static float x = -1.0f;
 	private static float y = -1.0f;
 	private static float zoom = 15.0f;
-	
 	private final MainActivity activity;
 	private Canvas canvas;
 	private CustomListItem lastItem;
@@ -32,7 +29,7 @@ public class RenderThread extends Thread {
 		try {
 			JsonMapRenderer.load(activity.getApplicationContext(), map);
 		} catch (IOException e) {
-			Log.e("MAP LOADER", "Nie udalo sie zaladowac mapy");
+			Log.e(CLASS_TAG, "Could not load map.");
 		}
 	}
 	
@@ -47,10 +44,10 @@ public class RenderThread extends Thread {
 			canvas.drawColor(0, PorterDuff.Mode.CLEAR);
 			canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.SCREEN);
 			
-			// rysowanie mapy
+			/* drawing the map */
 			JsonMapRenderer.draw(canvas, x, y, zoom);
 			
-			// oznaczanie lokalizacji robotów na mapie 
+			/* drawing a location of robots on the map */ 
 			for(CustomListItem item : activity.getItems()) {
 				if(activity.getSelectedItem() != item) {
 					item.draw(canvas, x, y, zoom);
@@ -65,12 +62,12 @@ public class RenderThread extends Thread {
 			activity.getSurfaceHolder().unlockCanvasAndPost(canvas);
 		}
 		
-		Log.d(tag, "Watek renderowania zostal zamkniety");
+		Log.d(CLASS_TAG, "Render thread was closed.");
 	}
 
 	public void setDefaultZoom() {
 		zoom = activity.findViewById(R.id.mapComponent).getHeight() / (JsonMapRenderer.getMapHeight() + 2);
-		Log.d(tag, "Ustawianie domyslnego przyblizenia mapy: " + zoom);
+		Log.d(CLASS_TAG, "Default zoom value: " + zoom);
 	}
 
 	public void setX(float _x) {

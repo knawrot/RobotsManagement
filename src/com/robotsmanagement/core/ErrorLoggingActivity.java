@@ -17,9 +17,6 @@ public class ErrorLoggingActivity extends Activity {
 		Intent creationIntent = getIntent();
 		String errorDesc = creationIntent.getStringExtra(ExceptionHandler.ERROR_TAG);
 		((TextView) findViewById(R.id.errorDesc)).setText(errorDesc);
-//		AlertDialog.Builder errorDialog = new AlertDialog.Builder(this);
-//		errorDialog.setMessage(errorDesc);
-//		errorDialog.create().show();
 		
 	}
 

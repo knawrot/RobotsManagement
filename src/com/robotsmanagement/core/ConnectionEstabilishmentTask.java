@@ -10,16 +10,15 @@ import pl.edu.agh.amber.roboclaw.RoboclawProxy;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.robotsmanagement.ui.list.CustomListItem;
+import com.robotsmanagement.model.list.CustomListItem;
 
-public class ConnectionEstabilishmentTask extends
-		AsyncTask<CustomListItem, Void, Void> {
+public class ConnectionEstabilishmentTask extends AsyncTask<CustomListItem, Void, Void> {
+	private static final String CLASS_TAG = ConnectionEstabilishmentTask.class.getName();
 
 	@Override
 	protected Void doInBackground(CustomListItem... params) {
-		Log.i("CONNECTION TASK",
+		Log.i(CLASS_TAG,
 				"Setting up connection for " + params[0].getIp());
-
 		
 		try {
 			AmberClient client = new AmberClient(params[0].getIp(), 26233);
@@ -29,9 +28,9 @@ public class ConnectionEstabilishmentTask extends
 			params[0].setLocationProxy(new LocationProxy(new AmberClient(params[0].getIp(), 26233), 0));
 			params[0].setRoboclawProxy(new RoboclawProxy(new AmberClient(params[0].getIp(), 26233), 0));
 		} catch (IOException e) {
-			Log.e("CONNECTION TASK", "Unable to connect to robot: " + e);
+			Log.e(CLASS_TAG, "Unable to connect to robot: " + e);
 		}
-
+		
 		return null;
 	}
 

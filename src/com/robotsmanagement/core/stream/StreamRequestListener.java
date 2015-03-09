@@ -23,16 +23,15 @@ import com.robotsmanagement.core.MainActivity;
 
 public class StreamRequestListener implements OnClickListener {
 	
-	private static final String tag = StreamRequestListener.class.getName();
-	private static final String login = "lorens";
-	private static final String password = "konik001";
+	private static final String CLASS_TAG = StreamRequestListener.class.getName();
+	private static final String login = "panda";
+	private static final String password = "panda2013";
 	private static final String videoUrl = "rtsp://%s:8554/stream";
 	private static final String killCommand = "kill `cat stream_pid | awk '{print $1}'`";
 	private static final String command = "nohup cvlc v4l2:///dev/video0 "
 			+ ":v4l2-standard= :live-caching=300 :sout=\"#transcode{vcodec=h264,fps=12,"
 			+ "scale=Automatycznie,width=176,height=144,acodec=none}:rtp{sdp=rtsp://:8554/stream}\" "
 			+ ":sout-keep > /dev/null 2>&1 & echo $! > stream_pid";
-
 	private final MainActivity activity;
 	private boolean isStreamRunning;
 	private final VideoView videoView; 
@@ -55,8 +54,8 @@ public class StreamRequestListener implements OnClickListener {
 				@Override
 				protected Void doInBackground(String... param) {
 			        try {
-			    		Log.i(tag, "IP urz¹dzenia: " + getIp() + "\nIP robota: " + param[0] +
-			    				"\nInicjowanie po³¹czenia SSH..." + "\n" + command);
+			    		Log.i(CLASS_TAG, "IP of device: " + getIp() + "\nRobot's IP: " + param[0] +
+			    				"\nInitialaizing a SSH connection..." + "\n" + command);
 						execSSHCommand(param[0], param[1]);
 					} catch(JSchException e) {
 						e.printStackTrace();
@@ -86,8 +85,8 @@ public class StreamRequestListener implements OnClickListener {
 			@Override
 			protected Void doInBackground(String... param) {
 		        try {
-		    		Log.i(tag, "IP urz¹dzenia: " + getIp() + "\nIP robota: " + param[0] +
-		    				"\nInicjowanie po³¹czenia SSH..." + "\n" + command);
+		        	Log.i(CLASS_TAG, "IP of device: " + getIp() + "\nRobot's IP: " + param[0] +
+		    				"\nInitialaizing a SSH connection..." + "\n" + command);
 					execSSHCommand(param[0], param[1]);
 					isStreamRunning = true;
 					activity.runOnUiThread(new Runnable() {
@@ -113,7 +112,7 @@ public class StreamRequestListener implements OnClickListener {
 			protected void onPostExecute(Void result) {
 				super.onPostExecute(result);
 				
-				// opoznione uruchamianie odtwarzania
+				/* delayed camera output play */
 				new AsyncTask<Void, Void, Void>() {
 
 					@Override
