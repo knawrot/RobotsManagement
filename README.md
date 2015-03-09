@@ -19,11 +19,11 @@ purposes.
 ![DTP](https://doc-08-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/keu0kdh7l387nio65gbi222haqk176jq/1425938400000/01104434867096471125/*/0B39XJsM8m6wWUWE5TVJPQnhEa1E)
 
 Application core features are:
-**1. Drive to point ** - choose the spot (location) on the map to where your current robot should head.
-**2. Drawing collisions ** - tell the robot to inform about obstacles it detects.
-**3. Video Streaming ** - lost your robot or ever wanted to feel like you are really driving it? Enable the video streaming!
-**4. Operate via controls (arrows) ** - let the robot reach its limit by driving it the way you want it.
-**5. GPS ** - take your robots outside and use the application wherever you want.
+**1. Drive to point** - choose the spot (location) on the map to where your current robot should head.
+**2. Drawing collisions** - tell the robot to inform about obstacles it detects.
+**3. Video Streaming** - lost your robot or ever wanted to feel like you are really driving it? Enable the video streaming!
+**4. Operate via controls (arrows)** - let the robot reach its limit by driving it the way you want it.
+**5. GPS** - take your robots outside and use the application wherever you want.
 
 ##Specification
 
