@@ -11,7 +11,7 @@ Application serves as a utility to manage a group of robots
 located within a defined area (specified by the map used; 
 by default - AGH, D17, second floor, "Laboratorium Robotów").
 Developed for both inside (map in *.json* format) and outside (*Google Maps*) 
-purpouses.
+purposes.
 
 
 ![Screen](https://doc-08-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/keu0kdh7l387nio65gbi222haqk176jq/1425938400000/01104434867096471125/*/0B39XJsM8m6wWUWE5TVJPQnhEa1E)
@@ -21,12 +21,12 @@ purpouses.
 ##Specification
 
 #####Target device
-Despite the variety of Android-based devices nowadays, 
+Despite the variety of Android-based devices, 
 the best results occur when running the application on a tablet. 
 Tested on *ASUS Transformer TF101G.*
 
 #####Target OS
-Application is only compatibile with Android 4.0 or higher.
+Application is only compatible with Android 4.0 or higher.
 
 #####Other requirements
 - robots and the application within the same WiFi connection
