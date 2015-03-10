@@ -8,10 +8,8 @@ The project has two contributors:
 ##Brief description
 Application serves as a utility to manage a group of robots 
 (see [Project Capo](http://project-capo.github.io/) for more details) 
-located within a defined area (specified by the map used; 
-by default - AGH, D17, second floor, "Laboratorium Robotów").
-Developed for both inside (map in *.json* format) and outside (*Google Maps*) 
-purposes.
+located both inside (specified by the map in *.json* format; by default - AGH, D17, second floor, 
+"Laboratorium Robotów") and outside (*Google Maps*).
 
 
 ##Core functionalities
@@ -37,14 +35,14 @@ See those features in action:
 
 #####Target device
 Despite the variety of Android-based devices, 
-the best results occur when running the application on a tablet. 
-Tested on *ASUS Transformer TF101G.*
+the best results occur when running the application on a tablet
+(tested on *ASUS Transformer TF101G*).
 
 #####Target OS
 Application is only compatible with Android 4.0 or higher.
 
 #####Other requirements
-- robots and the application within the same WiFi connection
+- robots and a device within the same WiFi connection
 - Google Play Services installed on a device
 
 
@@ -52,7 +50,7 @@ Application is only compatible with Android 4.0 or higher.
 ##How to run an application
 
 There is no standalone version (*.apk*) for this project. 
-If you want to run it on your device, you frist need to *set up your workspace*
+If you want to run it on your device, you frist need to *[set up your workspace](##How-to-set-up-a-workspace)*
 and then compile it on your own.
 
 
