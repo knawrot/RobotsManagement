@@ -14,7 +14,7 @@ located both inside (specified by the map in *.json* format; by default - AGH, D
 
 ##Core functionalities
 
-![DTP](https://doc-08-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/keu0kdh7l387nio65gbi222haqk176jq/1425938400000/01104434867096471125/*/0B39XJsM8m6wWUWE5TVJPQnhEa1E)
+![DTP](https://drive.google.com/uc?export=download&id=0B39XJsM8m6wWUWE5TVJPQnhEa1E)
 
 Application core features are:
 
@@ -27,9 +27,9 @@ Application core features are:
 <br>
 
 See those features in action:
-- "*Drive to point*" + "*Drawing collisions*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://docs.google.com/file/d/0B39XJsM8m6wWbm5DYjlaOFRHWUk/preview)
-- "*Operate via controls*" + "*Video streaming*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWeXlEVUZQY2hkbkk/preview)
-- "*GPS*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWUktpSmR5dU55c0U/preview)
+- "*Drive to point*" + "*Drawing collisions*":    [![VIDEO](https://drive.google.com/uc?export=download&id=0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://docs.google.com/file/d/0B39XJsM8m6wWbm5DYjlaOFRHWUk/preview)
+- "*Operate via controls*" + "*Video streaming*":    [![VIDEO](https://drive.google.com/uc?export=download&id=0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWeXlEVUZQY2hkbkk/preview)
+- "*GPS*":    [![VIDEO](https://drive.google.com/uc?export=download&id=0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWUktpSmR5dU55c0U/preview)
 
 ##Specification
 
