@@ -50,7 +50,7 @@ Application is only compatible with Android 4.0 or higher.
 ##How to run an application
 
 There is no standalone version (*.apk*) for this project. 
-If you want to run it on your device, you frist need to *[set up your workspace](##How-to-set-up-a-workspace)*
+If you want to run it on your device, you frist need to *[set up your workspace](#how-to-set-up-a-workspace)*
 and then compile it on your own.
 
 
