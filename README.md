@@ -3,7 +3,7 @@
 The project has two contributors:
 - Krzysztof Nawrot ([knawrot](https://github.com/knawrot)) - the owner of this repository
 - Michal Lorens ([michallorens](https://github.com/michallorens))
-
+<br>
  
 ##Brief description
 Application serves as a utility to manage a group of robots 
@@ -25,11 +25,13 @@ Application core features are:
 3. **Video Streaming** - lost your robot or ever wanted to feel like you are really driving it? Enable the video streaming!
 4. **Operate via controls (arrows)** - let the robot reach its limit by driving it the way you want it.
 5. **GPS** - take your robots outside and use the application wherever you want.
- 
+
+<br>
+
 See those features in action:
-- "Drive to point" + "Drawing collisions":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://docs.google.com/file/d/0B39XJsM8m6wWbm5DYjlaOFRHWUk/preview)
-- "Operate via controls" + "Video streaming":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWeXlEVUZQY2hkbkk/preview)
-- "GPS":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWUktpSmR5dU55c0U/preview)
+- "*Drive to point*" + "*Drawing collisions*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://docs.google.com/file/d/0B39XJsM8m6wWbm5DYjlaOFRHWUk/preview)
+- "*Operate via controls*" + "*Video streaming*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWeXlEVUZQY2hkbkk/preview)
+- "*GPS*":    [![VIDEO](https://doc-10-a4-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/o7akbt760pej79443ch7cph7k1gekvfa/1425938400000/01104434867096471125/*/0B39XJsM8m6wWSW0zWEp1VDZMNDA)](https://drive.google.com/file/d/0B39XJsM8m6wWUktpSmR5dU55c0U/preview)
 
 ##Specification
 
